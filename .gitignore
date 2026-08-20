@@ -1,0 +1,21 @@
+# Root Environment Variables
+.env
+.env*.local
+*.env
+
+# Planning and Specification Docs
+plans-mds/
+*.mds
+
+# IDE / OS files
+.idea/
+.vscode/
+.DS_Store
+*.log
+
+# Subfolder builds
+backend/target/
+frontend/.next/
+frontend/node_modules/
+frontend/out/
+frontend/build/

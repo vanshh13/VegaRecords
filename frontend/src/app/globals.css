@@ -1,0 +1,46 @@
+@import "tailwindcss";
+@import "../components/tasks/tasks.css";
+
+:root {
+  --primary: #6366f1;
+  --secondary: #a855f7;
+  --background: #090d16;
+  --surface: #111827;
+  --card: rgba(17, 24, 39, 0.75);
+  --card-hover: rgba(31, 41, 55, 0.85);
+  --text: #f9fafb;
+  --text-muted: #9ca3af;
+  --border: rgba(255, 255, 255, 0.1);
+  --hover-bg: rgba(255, 255, 255, 0.08);
+}
+
+.light {
+  --primary: #4f46e5;
+  --secondary: #7c3aed;
+  --background: #f1f5f9;
+  --surface: #ffffff;
+  --card: #ffffff;
+  --card-hover: #f8fafc;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --border: rgba(0, 0, 0, 0.12);
+  --hover-bg: rgba(0, 0, 0, 0.05);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.5);
+}
