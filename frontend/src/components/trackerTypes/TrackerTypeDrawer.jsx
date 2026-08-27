@@ -36,6 +36,17 @@ export default function TrackerTypeDrawer() {
     }
   }, [editingType, drawerOpen]);
 
+  // Handle ESC key to close
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && drawerOpen) {
+        closeDrawer();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [drawerOpen, closeDrawer]);
+
   if (!drawerOpen) return null;
 
   const handleSubmit = async (e) => {
@@ -62,9 +73,15 @@ export default function TrackerTypeDrawer() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-sm font-mono animate-fadeIn">
+    <div
+      onClick={closeDrawer}
+      className="fixed inset-0 z-[100] overflow-hidden bg-black/60 backdrop-blur-sm font-mono animate-fadeIn cursor-pointer"
+    >
       <div className="absolute inset-y-0 right-0 flex max-w-full pl-10">
-        <div className="w-screen max-w-md border-l border-[var(--border)] bg-[var(--surface)] p-6 shadow-2xl flex flex-col justify-between">
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="w-screen max-w-md border-l border-[var(--border)] bg-[var(--surface)] p-6 shadow-2xl flex flex-col justify-between cursor-default"
+        >
           <div className="space-y-6 overflow-y-auto custom-scrollbar pr-1">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">

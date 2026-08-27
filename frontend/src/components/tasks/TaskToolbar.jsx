@@ -139,7 +139,7 @@ export default function TaskToolbar() {
           className="task-filter-select"
         >
           {PRIORITY_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value} className="bg-[#0e0e14]">
+            <option key={o.value} value={o.value} className="bg-[var(--surface)] text-[var(--text)]">
               {o.label}
             </option>
           ))}
@@ -152,7 +152,7 @@ export default function TaskToolbar() {
           className="task-filter-select"
         >
           {STATUS_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value} className="bg-[#0e0e14]">
+            <option key={o.value} value={o.value} className="bg-[var(--surface)] text-[var(--text)]">
               {o.label}
             </option>
           ))}

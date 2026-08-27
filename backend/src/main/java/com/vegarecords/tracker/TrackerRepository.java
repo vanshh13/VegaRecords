@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,6 +16,8 @@ import java.util.UUID;
 public interface TrackerRepository extends JpaRepository<Tracker, UUID> {
 
     Optional<Tracker> findByIdAndUser(UUID id, User user);
+    List<Tracker> findByUser(User user);
+
 
     @Query("SELECT t FROM Tracker t WHERE t.user = :user " +
            "AND (:typeId IS NULL OR t.trackerType.id = :typeId) " +

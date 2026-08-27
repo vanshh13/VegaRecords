@@ -23,6 +23,7 @@ import {
     User,
     Shield,
     X,
+    Share2,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 
@@ -34,10 +35,11 @@ const NAV_ITEMS = [
     { name: "Tracker Types", href: "/tracker-types", icon: Layers, badge: "SCHEMA" },
     { name: "Resources", href: "/resources", icon: Bookmark },
     { name: "Notes", href: "/notes", icon: FileText },
-    { name: "Activity", href: "/activity", icon: Clock },
-    { name: "Notifications", href: "/notifications", icon: Bell },
-    { name: "Search", href: "/search", icon: Search },
+    { name: "Knowledge Graph", href: "/graph", icon: Share2, badge: "NEURAL" },
+    { name: "Activity & Alerts", href: "/activity", icon: Clock, badge: "STREAM" },
 ];
+
+
 
 export default function Sidebar({ mobileOpen = false, onMobileClose = () => { } }) {
     const [collapsed, setCollapsed] = useState(false);
@@ -250,7 +252,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose = () => { } 
                 initial={false}
                 animate={{ width: collapsed ? 84 : 275 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="hidden md:flex sticky top-0 left-0 h-screen shrink-0 z-40 flex-col border-r border-[var(--border)] bg-[var(--surface)]/95 backdrop-blur-2xl shadow-[0_0_40px_rgba(0,0,0,0.5)]"
+                className="hidden md:flex sticky top-0 left-0 h-screen shrink-0 z-20 flex-col border-r border-[var(--border)] bg-[var(--surface)]/95 backdrop-blur-2xl shadow-[0_0_50px_rgba(0,0,0,0.6)]"
             >
                 <SidebarContent isMobile={false} />
             </motion.aside>
@@ -265,7 +267,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose = () => { } 
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={onMobileClose}
-                            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm md:hidden"
+                            className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm md:hidden"
                         />
 
                         {/* Slide-out Mobile Panel */}
@@ -274,7 +276,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose = () => { } 
                             animate={{ x: 0 }}
                             exit={{ x: "-100%" }}
                             transition={{ type: "spring", damping: 25, stiffness: 250 }}
-                            className="fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-[var(--surface)] border-r border-[var(--border)] shadow-2xl flex flex-col md:hidden"
+                            className="fixed inset-y-0 left-0 z-[91] w-72 max-w-[85vw] bg-[var(--surface)] border-r border-[var(--border)] shadow-2xl flex flex-col md:hidden"
                         >
                             <SidebarContent isMobile={true} />
                         </motion.aside>

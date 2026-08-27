@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,6 +16,8 @@ import java.util.UUID;
 public interface NoteRepository extends JpaRepository<Note, UUID> {
 
     Optional<Note> findByIdAndUser(UUID id, User user);
+    List<Note> findByUser(User user);
+
 
     @Query("SELECT n FROM Note n WHERE n.user = :user " +
            "AND (:categoryId IS NULL OR n.category.id = :categoryId) " +

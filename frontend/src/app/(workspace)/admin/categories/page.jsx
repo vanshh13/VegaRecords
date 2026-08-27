@@ -17,15 +17,10 @@ export default function AdminCategoriesPage() {
     <AdminLayout>
       <div className="space-y-6 font-mono">
         {/* Header Title */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[var(--text)] flex items-center gap-2.5">
-              <FolderTree className="h-6 w-6 text-[var(--primary)]" /> System Category Management
-            </h1>
-            <p className="text-xs text-[var(--text-muted)] mt-1">
-              Maintain global system categories (Education, Entertainment, Career, Fitness, Health, Finance...).
-            </p>
-          </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border)] pb-4">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[var(--text)] flex items-center gap-2.5">
+            <FolderTree className="h-6 w-6 text-[var(--primary)]" /> System Category Management
+          </h1>
 
           <button
             onClick={() => fetchCategories()}
@@ -34,6 +29,7 @@ export default function AdminCategoriesPage() {
             <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} /> Refresh Categories
           </button>
         </div>
+
 
         {/* System Category Tree Manager Component */}
         <CategoryTreeManager categories={categories} onRefresh={fetchCategories} />

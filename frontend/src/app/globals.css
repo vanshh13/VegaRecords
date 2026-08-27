@@ -1,17 +1,18 @@
 @import "tailwindcss";
 @import "../components/tasks/tasks.css";
+@import "../components/graph/graph.css";
 
 :root {
   --primary: #6366f1;
   --secondary: #a855f7;
   --background: #090d16;
   --surface: #111827;
-  --card: rgba(17, 24, 39, 0.75);
-  --card-hover: rgba(31, 41, 55, 0.85);
+  --card: rgba(19, 28, 46, 0.88);
+  --card-hover: rgba(28, 40, 64, 0.95);
   --text: #f9fafb;
-  --text-muted: #9ca3af;
-  --border: rgba(255, 255, 255, 0.1);
-  --hover-bg: rgba(255, 255, 255, 0.08);
+  --text-muted: #a1a1aa;
+  --border: rgba(99, 102, 241, 0.22);
+  --hover-bg: rgba(99, 102, 241, 0.12);
 }
 
 .light {

@@ -132,12 +132,12 @@ export default function NotesPage() {
           </div>
         )}
 
-        {/* 2-Column Responsive Workspace Layout: Center Note List (5 cols) | Right Note Editor (7 cols) */}
+        {/* Responsive Workspace Layout: Full 12-col Grid when no note selected | 5-col / 7-col split when note is active */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 min-h-0 lg:h-[calc(100vh-18rem)]">
-          {/* Note List / Workspace (5 cols if not focus, 12 cols if focus) */}
+          {/* Note List Container */}
           <div
             className={`${
-              focusMode
+              focusMode || !selectedNote
                 ? "col-span-12"
                 : mobileTab === "list"
                 ? "block"
@@ -161,9 +161,14 @@ export default function NotesPage() {
             ) : (
               <div
                 className={`grid gap-4 ${
-                  viewMode === "grid" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"
+                  !selectedNote
+                    ? viewMode === "grid"
+                      ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                      : "grid-cols-1"
+                    : "grid-cols-1"
                 }`}
               >
+
                 {notes.map((note) => (
                   <NoteCard key={note.id} note={note} />
                 ))}
@@ -171,8 +176,8 @@ export default function NotesPage() {
             )}
           </div>
 
-          {/* Right Editor Panel (7 cols when not in focus mode) */}
-          {!focusMode && (
+          {/* Right Editor Panel - Only rendered when a note is active and not in focus mode */}
+          {!focusMode && selectedNote && (
             <div
               className={`${
                 mobileTab === "editor" ? "block" : "hidden lg:block"
@@ -182,6 +187,7 @@ export default function NotesPage() {
             </div>
           )}
         </div>
+
 
         {/* Right Slide-over Category Sidebar */}
         <NoteCategorySidebar />

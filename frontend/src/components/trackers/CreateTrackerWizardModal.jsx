@@ -1,288 +1,127 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useTrackerStore } from "@/stores/tracker.store";
-import { useCategoryStore } from "@/stores/category.store";
 import { useTrackerTypeStore } from "@/stores/trackerType.store";
+import { useCategoryStore } from "@/stores/category.store";
+import { mediaSearchService } from "@/services/mediaSearch.service";
+import TrackerTypeGallery from "@/components/trackerTypes/TrackerTypeGallery";
 import {
+  Wand2,
   Sparkles,
-  Search,
-  ArrowRight,
-  ArrowLeft,
-  CheckCircle2,
-  Sliders,
-  Plus,
-  Trash2,
   X,
-  Layers,
-  Activity,
+  Search,
+  CheckCircle2,
+  Tv,
   Film,
-  Heart,
-  Database,
-  Briefcase,
   Book,
-  Globe,
-  Coffee,
-  Zap,
-  CheckSquare,
-  Award,
-  Grid,
-  List,
-  Calendar,
-  BarChart3,
+  GraduationCap,
+  ArrowRight,
+  Layers,
+  Star,
+  RefreshCw,
+  Plus,
+  Edit2,
+  Image as ImageIcon,
+  Heart,
+  Briefcase,
+  Database,
   Flame,
+  Zap,
   LayoutTemplate,
+  Folder,
 } from "lucide-react";
-
-// Preset Prompt Templates mapping
-const PRESET_TEMPLATES = [
-  {
-    keyword: "movies",
-    title: "Movies & Cinema Collection",
-    categoryName: "Entertainment",
-    typeName: "Collection Tracker",
-    icon: Film,
-    color: "#ec4899",
-    description: "Catalog watched movies, ratings, cinema dates, and watchlist.",
-    fields: [
-      { fieldName: "Title", fieldType: "TEXT", isRequired: true },
-      { fieldName: "Status", fieldType: "SELECT", isRequired: true, options: "Plan to Watch, Watching, Completed" },
-      { fieldName: "Rating (1-5)", fieldType: "NUMBER", isRequired: false },
-      { fieldName: "Watch Date", fieldType: "DATE", isRequired: false },
-      { fieldName: "Review / Notes", fieldType: "TEXT", isRequired: false },
-    ],
-    views: ["Grid", "List", "Timeline"],
-    metrics: ["Total Movies Watched", "Average Rating", "Monthly Watch Rate"],
-    progressLogic: "Count of items marked 'Completed'",
-  },
-  {
-    keyword: "weight loss",
-    title: "Weight & Body Composition",
-    categoryName: "Health & Fitness",
-    typeName: "Progress Tracker",
-    icon: Heart,
-    color: "#ef4444",
-    description: "Track body weight trends, body fat %, and fitness targets over time.",
-    fields: [
-      { fieldName: "Entry Date", fieldType: "DATE", isRequired: true },
-      { fieldName: "Weight (kg)", fieldType: "NUMBER", isRequired: true },
-      { fieldName: "Body Fat %", fieldType: "NUMBER", isRequired: false },
-      { fieldName: "Calories Target", fieldType: "NUMBER", isRequired: false },
-      { fieldName: "Workout Notes", fieldType: "TEXT", isRequired: false },
-    ],
-    views: ["Progress Chart", "Table", "Analytics"],
-    metrics: ["Current Weight vs Goal", "Net Weight Change (kg)", "Streak Days"],
-    progressLogic: "Numeric Delta towards Target Weight Goal",
-  },
-  {
-    keyword: "job applications",
-    title: "Career Job Search Pipeline",
-    categoryName: "Career",
-    typeName: "Project Tracker",
-    icon: Briefcase,
-    color: "#3b82f6",
-    description: "Manage job interviews, company contacts, salaries, and follow-up deadlines.",
-    fields: [
-      { fieldName: "Company Name", fieldType: "TEXT", isRequired: true },
-      { fieldName: "Role Title", fieldType: "TEXT", isRequired: true },
-      { fieldName: "Status", fieldType: "SELECT", isRequired: true, options: "Applied, Screening, Interviewing, Offer, Rejected" },
-      { fieldName: "Target Salary", fieldType: "NUMBER", isRequired: false },
-      { fieldName: "Applied Date", fieldType: "DATE", isRequired: true },
-      { fieldName: "Follow-up Date", fieldType: "DATE", isRequired: false },
-    ],
-    views: ["Kanban Board", "Table", "Timeline"],
-    metrics: ["Total Applied", "Interview Rate %", "Pending Responses"],
-    progressLogic: "Kanban Stage Progression",
-  },
-  {
-    keyword: "books",
-    title: "Reading & Book Library",
-    categoryName: "Learning",
-    typeName: "Collection Tracker",
-    icon: Book,
-    color: "#8b5cf6",
-    description: "Track books read, page progress, author notes, and annual reading goals.",
-    fields: [
-      { fieldName: "Book Title", fieldType: "TEXT", isRequired: true },
-      { fieldName: "Author", fieldType: "TEXT", isRequired: true },
-      { fieldName: "Pages Read", fieldType: "NUMBER", isRequired: true },
-      { fieldName: "Total Pages", fieldType: "NUMBER", isRequired: true },
-      { fieldName: "Status", fieldType: "SELECT", isRequired: true, options: "Want to Read, Reading, Finished" },
-      { fieldName: "Rating", fieldType: "NUMBER", isRequired: false },
-    ],
-    views: ["Library Grid", "Reading Progress", "Table"],
-    metrics: ["Books Finished This Year", "Total Pages Read", "Completion %"],
-    progressLogic: "(Pages Read / Total Pages) * 100",
-  },
-  {
-    keyword: "expenses",
-    title: "Daily Expenses & Budget Log",
-    categoryName: "Finance",
-    typeName: "Expense Tracker",
-    icon: Database,
-    color: "#10b981",
-    description: "Log daily spending, categorize transactions, and monitor monthly budgets.",
-    fields: [
-      { fieldName: "Expense Name", fieldType: "TEXT", isRequired: true },
-      { fieldName: "Amount ($)", fieldType: "NUMBER", isRequired: true },
-      { fieldName: "Category", fieldType: "SELECT", isRequired: true, options: "Food, Rent, Transport, Utilities, Entertainment, Health" },
-      { fieldName: "Payment Method", fieldType: "SELECT", isRequired: false, options: "Credit Card, Debit Card, Cash, UPI" },
-      { fieldName: "Transaction Date", fieldType: "DATE", isRequired: true },
-    ],
-    views: ["Table", "Monthly Analytics", "Calendar"],
-    metrics: ["Total Spent This Month", "Daily Average Spend", "Top Expense Category"],
-    progressLogic: "Sum of Amounts vs Budget Limit",
-  },
-  {
-    keyword: "habits",
-    title: "Daily Routine & Habit Streaks",
-    categoryName: "Health & Fitness",
-    typeName: "Habit Tracker",
-    icon: Flame,
-    color: "#f59e0b",
-    description: "Build positive routines, track streak counters, and stay consistent.",
-    fields: [
-      { fieldName: "Habit Name", fieldType: "TEXT", isRequired: true },
-      { fieldName: "Frequency", fieldType: "SELECT", isRequired: true, options: "Daily, Weekly, Weekdays" },
-      { fieldName: "Target Days", fieldType: "NUMBER", isRequired: true },
-      { fieldName: "Current Streak", fieldType: "NUMBER", isRequired: false },
-      { fieldName: "Reminder Time", fieldType: "TEXT", isRequired: false },
-    ],
-    views: ["Calendar Heatmap", "Streak Counter", "Statistics"],
-    metrics: ["Current Streak Days", "Completion Rate %", "Best Streak"],
-    progressLogic: "Consecutive Days Completed",
-  },
-  {
-    keyword: "subscriptions",
-    title: "Recurring Subscriptions Tracker",
-    categoryName: "Finance",
-    typeName: "Subscription Tracker",
-    icon: Zap,
-    color: "#06b6d4",
-    description: "Keep track of active software, streaming, and membership recurring bills.",
-    fields: [
-      { fieldName: "Service Name", fieldType: "TEXT", isRequired: true },
-      { fieldName: "Monthly Cost ($)", fieldType: "NUMBER", isRequired: true },
-      { fieldName: "Billing Cycle", fieldType: "SELECT", isRequired: true, options: "Monthly, Yearly, Quarterly" },
-      { fieldName: "Renewal Date", fieldType: "DATE", isRequired: true },
-      { fieldName: "Auto Renew?", fieldType: "SELECT", isRequired: false, options: "Yes, No" },
-    ],
-    views: ["Calendar", "Monthly Summary", "Table"],
-    metrics: ["Total Monthly Subscription Cost", "Active Services Count", "Next Upcoming Renewal"],
-    progressLogic: "Sum of Monthly Active Subscriptions",
-  },
-];
-
-const SUGGESTION_CHIPS = [
-  "Movies",
-  "Weight Loss",
-  "Job Applications",
-  "Books",
-  "Expenses",
-  "Habits",
-  "Subscriptions",
-  "Gym Progress",
-  "Anime Watchlist",
-  "Investments",
-];
 
 export default function CreateTrackerWizardModal({ isOpen, onClose }) {
   const { createTracker } = useTrackerStore();
-  const { categories, fetchCategories } = useCategoryStore();
   const { trackerTypes, fetchTrackerTypes } = useTrackerTypeStore();
+  const { categories, fetchCategories } = useCategoryStore();
+
+  useEffect(() => {
+    fetchTrackerTypes();
+    fetchCategories();
+  }, [fetchTrackerTypes, fetchCategories]);
 
   const [step, setStep] = useState(1);
   const [prompt, setPrompt] = useState("");
-  const [selectedPreset, setSelectedPreset] = useState(null);
+  const [mediaQuery, setMediaQuery] = useState("");
 
-  // Editable Template Customizer State for Step 3
+  // Search Results State
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState(null);
+
+  // Custom Editable Fields State
   const [customTitle, setCustomTitle] = useState("");
   const [customDescription, setCustomDescription] = useState("");
+  const [coverImage, setCoverImage] = useState("");
+  const [targetCount, setTargetCount] = useState(12);
+  const [unitLabel, setUnitLabel] = useState("episodes");
+  const [isOngoing, setIsOngoing] = useState(false);
+  const [initialStatus, setInitialStatus] = useState("IN_PROGRESS");
+  const [initialCurrentCount, setInitialCurrentCount] = useState(0);
   const [customCategory, setCustomCategory] = useState("");
   const [customType, setCustomType] = useState("");
-  const [targetCount, setTargetCount] = useState(10);
-  const [unitLabel, setUnitLabel] = useState("items");
-  const [customFields, setCustomFields] = useState([]);
+  const [rating, setRating] = useState("");
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Debounced media search effect
   useEffect(() => {
-    fetchCategories();
-    fetchTrackerTypes();
-  }, [fetchCategories, fetchTrackerTypes]);
+    if (!mediaQuery || mediaQuery.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
 
-  // Smart Prompt Matching Engine
-  const matchedPreset = useMemo(() => {
-    if (!prompt.trim()) return PRESET_TEMPLATES[0];
-    const query = prompt.toLowerCase().trim();
-    const found = PRESET_TEMPLATES.find(
-      (t) =>
-        t.keyword.includes(query) ||
-        t.title.toLowerCase().includes(query) ||
-        t.categoryName.toLowerCase().includes(query) ||
-        t.description.toLowerCase().includes(query)
-    );
-    if (found) return found;
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const results = await mediaSearchService.searchMedia(mediaQuery);
+        setSearchResults(results);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
 
-    // Generic Fallback Matcher
-    return {
-      keyword: query,
-      title: `${prompt.charAt(0).toUpperCase() + prompt.slice(1)} Tracker`,
-      categoryName: "Productivity",
-      typeName: "Custom Tracker",
-      icon: Activity,
-      color: "#6366f1",
-      description: `Custom tracking system configured for "${prompt}".`,
-      fields: [
-        { fieldName: "Item Title / Entry", fieldType: "TEXT", isRequired: true },
-        { fieldName: "Log Date", fieldType: "DATE", isRequired: true },
-        { fieldName: "Notes & Tags", fieldType: "TEXT", isRequired: false },
-      ],
-      views: ["Grid", "List", "Table"],
-      metrics: ["Total Entries Logged", "Monthly Activity"],
-      progressLogic: "Total Entry Count",
-    };
-  }, [prompt]);
+    return () => clearTimeout(timer);
+  }, [mediaQuery, prompt]);
+
+  // Auto-populate when selecting a media search result
+  const handleSelectMediaItem = (item) => {
+    setSelectedMedia(item);
+    setCustomTitle(item.title);
+    if (item.coverImage) setCoverImage(item.coverImage);
+    const isItemOngoing = item.totalUnits === 0 || item.status === "RELEASING" || item.status === "Currently Airing";
+    setIsOngoing(isItemOngoing);
+    if (item.totalUnits) setTargetCount(item.totalUnits);
+    if (item.unitName) setUnitLabel(item.unitName.toLowerCase());
+    if (item.synopsis) setCustomDescription(item.synopsis.slice(0, 300));
+    if (item.rating != null) setRating(item.rating.toString());
+  };
 
   const handleSelectChip = (chipText) => {
     setPrompt(chipText);
+    setMediaQuery(chipText);
     setStep(2);
   };
+
+
 
   const handleProceedToStep2 = () => {
     if (!prompt.trim()) setPrompt("Movies");
+    setMediaQuery(prompt);
     setStep(2);
   };
 
-  const handleSelectPreset = (preset) => {
-    setSelectedPreset(preset);
-    setCustomTitle(preset.title);
-    setCustomDescription(preset.description);
+  const handleProceedToStep3 = (typeName = "Collection Tracker") => {
+    const cat = categories.find((c) => c.name.toLowerCase().includes("media") || c.name.toLowerCase().includes("entertainment")) || categories[0];
+    const type = trackerTypes.find((t) => t.name.toLowerCase().includes(typeName.toLowerCase())) || trackerTypes[0];
 
-    // Match backend IDs for category & trackerType
-    const cat = categories.find((c) => c.name.toLowerCase() === preset.categoryName.toLowerCase()) || categories[0];
-    const type = trackerTypes.find((t) => t.name.toLowerCase() === preset.typeName.toLowerCase()) || trackerTypes[0];
-
-    setCustomCategory(cat?.id || "");
-    setCustomType(type?.id || "");
-    setCustomFields(preset.fields ? [...preset.fields] : []);
+    if (!customCategory) setCustomCategory(cat?.id || "");
+    if (!customType) setCustomType(type?.id || "");
     setStep(3);
-  };
-
-  const handleAddField = () => {
-    setCustomFields([
-      ...customFields,
-      { fieldName: `Field ${customFields.length + 1}`, fieldType: "TEXT", isRequired: false },
-    ]);
-  };
-
-  const handleRemoveField = (index) => {
-    setCustomFields(customFields.filter((_, idx) => idx !== index));
-  };
-
-  const handleFieldChange = (index, key, val) => {
-    const updated = [...customFields];
-    updated[index][key] = val;
-    setCustomFields(updated);
   };
 
   const handleCreateTrackerSubmit = async () => {
@@ -291,409 +130,478 @@ export default function CreateTrackerWizardModal({ isOpen, onClose }) {
       const selectedCatId = customCategory || categories[0]?.id;
       const selectedTypeId = customType || trackerTypes[0]?.id;
 
+      const activeCoverUrl = coverImage || selectedMedia?.coverImage || null;
+
+      // Construct verified structured metadata notes
+      const notesParts = [];
+      if (customDescription) notesParts.push(`Synopsis: ${customDescription}`);
+      if (selectedMedia?.creator) notesParts.push(`Creator/Studio: ${selectedMedia.creator}`);
+      if (selectedMedia?.rating) notesParts.push(`Rating: ${selectedMedia.rating}`);
+      if (selectedMedia?.releaseYear) notesParts.push(`Year: ${selectedMedia.releaseYear}`);
+      if (activeCoverUrl) notesParts.push(`CoverImage: ${activeCoverUrl}`);
+      if (targetCount) notesParts.push(`TargetCount: ${targetCount}`);
+      if (unitLabel) notesParts.push(`UnitLabel: ${unitLabel}`);
+      if (isOngoing) notesParts.push(`Ongoing: true`);
+
+      const formattedNotes = notesParts.length > 0 ? notesParts.join("\n") : "Configured via VegaRecords Media Engine";
+
       await createTracker({
         title: customTitle || "My Custom Tracker",
-        description: customDescription || "Configured via Smart Template Engine",
-        status: "IN_PROGRESS",
-        currentCount: 0,
-        targetCount: Number(targetCount) || 10,
+        notes: formattedNotes,
+        description: formattedNotes,
+        coverUrl: activeCoverUrl,
+        coverImage: activeCoverUrl,
+        status: initialStatus,
+        currentCount: Number(initialCurrentCount) || 0,
+        targetCount: isOngoing ? 0 : (Number(targetCount) || 10),
         unitLabel: unitLabel || "items",
+        rating: rating !== "" ? Number(rating) : (selectedMedia?.rating ? Number(selectedMedia.rating) : null),
+        isOngoing: isOngoing,
         categoryId: selectedCatId,
+        categoryIds: selectedCatId ? [selectedCatId] : [],
         trackerTypeId: selectedTypeId,
         isFavorite: false,
       });
 
       onClose();
-      // Reset wizard
       setStep(1);
       setPrompt("");
+      setMediaQuery("");
+      setSelectedMedia(null);
+      setCoverImage("");
+      setCustomTitle("");
+      setCustomDescription("");
+      setRating("");
     } catch {
-      alert("Failed to create tracker. Please check inputs.");
+      alert("Failed to create tracker. Please verify input fields.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // ESC key handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn font-mono">
-      <div className="relative w-full max-w-3xl rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto custom-scrollbar">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xl animate-fadeIn font-mono cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-4xl rounded-3xl border border-[var(--primary)]/30 bg-[var(--surface)] p-6 sm:p-8 shadow-2xl shadow-[var(--primary)]/10 space-y-6 max-h-[90vh] overflow-y-auto custom-scrollbar cursor-default"
+      >
         {/* Top Header */}
         <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-[var(--primary)] to-[var(--secondary)] text-white shadow-lg">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-[var(--primary)] to-indigo-500 text-white shadow-lg shadow-[var(--primary)]/20">
               <Sparkles className="h-5 w-5 animate-pulse" />
             </div>
             <div>
-              <h2 className="text-base font-extrabold text-[var(--text)]">Smart Tracker Setup Engine</h2>
-              <p className="text-xs text-[var(--text-muted)]">
-                Step {step} of 3 — {step === 1 ? "Goal Intent" : step === 2 ? "Template Match" : "Customize & Launch"}
+              <h2 className="text-lg font-black tracking-wide text-[var(--text)] flex items-center gap-2">
+                Create New Tracker
+              </h2>
+              <p className="text-xs text-[var(--text-muted)] font-medium">
+                {step === 1 ? "Step 1/3 — Choose Category or Pre-built Template" : step === 2 ? "Step 2/3 — Search & Auto-Fill Media" : "Step 3/3 — Review & Launch Tracker"}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-full p-2 text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text)] transition-colors"
+            className="rounded-full p-2 text-[var(--text-muted)] hover:bg-[var(--card)] hover:text-[var(--text)] transition-colors border border-transparent hover:border-[var(--border)]"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Wizard Progress Bar */}
-        <div className="grid grid-cols-3 gap-2">
-          <div className={`h-1.5 rounded-full ${step >= 1 ? "bg-[var(--primary)]" : "bg-[var(--border)]"}`} />
-          <div className={`h-1.5 rounded-full ${step >= 2 ? "bg-[var(--primary)]" : "bg-[var(--border)]"}`} />
-          <div className={`h-1.5 rounded-full ${step >= 3 ? "bg-[var(--primary)]" : "bg-[var(--border)]"}`} />
+        {/* Wizard Progress Stepper Pills */}
+        <div className="grid grid-cols-3 gap-3">
+          <button
+            onClick={() => setStep(1)}
+            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
+              step === 1
+                ? "border-[var(--primary)] bg-[var(--primary)]/15 text-[var(--primary)] shadow-sm"
+                : step > 1
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                : "border-[var(--border)] bg-[var(--card)] text-[var(--text-muted)]"
+            }`}
+          >
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--surface)] text-[10px]">1</span>
+            Category & Template
+          </button>
+
+          <button
+            onClick={() => step >= 2 && setStep(2)}
+            disabled={step < 2}
+            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
+              step === 2
+                ? "border-[var(--primary)] bg-[var(--primary)]/15 text-[var(--primary)] shadow-sm"
+                : step > 2
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                : "border-[var(--border)] bg-[var(--card)] text-[var(--text-muted)] opacity-60 cursor-not-allowed"
+            }`}
+          >
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--surface)] text-[10px]">2</span>
+            Media Search
+          </button>
+
+          <button
+            onClick={() => step >= 3 && setStep(3)}
+            disabled={step < 3}
+            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
+              step === 3
+                ? "border-[var(--primary)] bg-[var(--primary)]/15 text-[var(--primary)] shadow-sm"
+                : "border-[var(--border)] bg-[var(--card)] text-[var(--text-muted)] opacity-60 cursor-not-allowed"
+            }`}
+          >
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--surface)] text-[10px]">3</span>
+            Customize & Launch
+          </button>
         </div>
 
-        {/* STEP 1: What do you want to track? */}
+        {/* STEP 1: Choose Tracker Category & Direct Search */}
         {step === 1 && (
           <div className="space-y-6 animate-fadeIn">
-            <div className="text-center space-y-2 py-4">
-              <h3 className="text-xl sm:text-2xl font-extrabold text-[var(--text)] tracking-tight">
-                What do you want to track?
-              </h3>
-              <p className="text-xs text-[var(--text-muted)] max-w-md mx-auto">
-                No need to manually define categories first. Type your goal or pick a suggested topic below.
-              </p>
-            </div>
-
-            {/* Main Prompt Input Box */}
+            {/* Direct Search Bar */}
             <div className="relative max-w-xl mx-auto">
-              <Search className="absolute left-4 top-4 h-5 w-5 text-[var(--primary)]" />
+              <Search className="absolute left-4 top-3.5 h-5 w-5 text-[var(--primary)]" />
               <input
                 type="text"
-                autoFocus
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleProceedToStep2()}
-                placeholder="e.g. Movies, Weight Loss, Expenses, Gym Progress..."
-                className="w-full rounded-2xl border-2 border-[var(--primary)]/40 bg-[var(--card)] py-3.5 pl-12 pr-28 text-sm text-[var(--text)] placeholder-[var(--text-muted)] shadow-xl focus:border-[var(--primary)] focus:outline-none"
+                placeholder="Search Anime, Movies, Books, Games directly..."
+                className="w-full rounded-2xl border-2 border-[var(--primary)]/40 bg-[var(--card)] py-3 pl-12 pr-28 text-xs font-bold text-[var(--text)] placeholder-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none shadow-md"
               />
               <button
                 onClick={handleProceedToStep2}
-                className="absolute right-2 top-2 rounded-xl bg-[var(--primary)] px-4 py-2 text-xs font-bold text-white shadow-md hover:opacity-90 transition-opacity flex items-center gap-1.5"
+                className="absolute right-1.5 top-1.5 rounded-xl bg-gradient-to-r from-[var(--primary)] to-indigo-500 px-4 py-1.5 text-xs font-bold text-white shadow-md hover:opacity-90 transition-opacity flex items-center gap-1.5"
               >
-                Next <ArrowRight className="h-4 w-4" />
+                Search <ArrowRight className="h-4 w-4" />
               </button>
             </div>
 
-            {/* Quick Suggestion Chips */}
-            <div className="space-y-2">
-              <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider block text-center">
-                Popular Quick Templates
-              </span>
-              <div className="flex flex-wrap items-center justify-center gap-2 max-w-2xl mx-auto">
-                {SUGGESTION_CHIPS.map((chip) => (
-                  <button
-                    key={chip}
-                    onClick={() => handleSelectChip(chip)}
-                    className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3.5 py-1.5 text-xs font-bold text-[var(--text-muted)] hover:border-[var(--primary)]/60 hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-all duration-200 shadow-sm"
-                  >
-                    + {chip}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <TrackerTypeGallery
+              onSelectType={(template) => handleSelectChip(template.badge || template.title)}
+            />
           </div>
         )}
 
-        {/* STEP 2: Auto-suggested Template & Schema Match */}
+        {/* STEP 2: Live Autocomplete Media Search */}
         {step === 2 && (
-          <div className="space-y-6 animate-fadeIn">
+          <div className="space-y-5 animate-fadeIn">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-extrabold text-[var(--text)]">Recommended Template Match</h3>
+                <h3 className="text-base font-extrabold text-[var(--text)]">Search & Auto-Populate Media</h3>
                 <p className="text-xs text-[var(--text-muted)]">
-                  Based on "{prompt || "Movies"}", we automatically configured the optimal schema and views.
+                  Live connection to external media APIs. Click any result to auto-fill fields.
                 </p>
               </div>
               <button
                 onClick={() => setStep(1)}
-                className="text-xs text-[var(--primary)] hover:underline flex items-center gap-1"
+                className="text-xs font-bold text-[var(--primary)] hover:underline"
               >
-                <ArrowLeft className="h-3.5 w-3.5" /> Back to Prompt
+                ← Back to Selection
               </button>
             </div>
 
-            {/* Featured Suggested Template Card */}
-            <div className="relative overflow-hidden rounded-3xl border-2 border-[var(--primary)]/50 bg-[var(--card)] p-6 shadow-xl space-y-4">
-              <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="flex h-12 w-12 items-center justify-center rounded-2xl border shadow-inner"
-                    style={{
-                      backgroundColor: `${matchedPreset.color}20`,
-                      borderColor: `${matchedPreset.color}40`,
-                      color: matchedPreset.color,
-                    }}
-                  >
-                    <matchedPreset.icon className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h4 className="text-base font-extrabold text-[var(--text)]">{matchedPreset.title}</h4>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="rounded bg-[var(--primary)]/15 px-2 py-0.5 text-[10px] font-bold text-[var(--primary)] uppercase border border-[var(--primary)]/30">
-                        Category: {matchedPreset.categoryName}
-                      </span>
-                      <span className="rounded bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-400 uppercase border border-emerald-500/30">
-                        Type: {matchedPreset.typeName}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleSelectPreset(matchedPreset)}
-                  className="rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] px-5 py-2.5 text-xs font-bold text-white shadow-lg hover:opacity-90 transition-opacity flex items-center gap-2"
-                >
-                  Use Template <CheckCircle2 className="h-4 w-4" />
-                </button>
-              </div>
-
-              {/* Default Fields Grid */}
-              <div className="space-y-2">
-                <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider flex items-center gap-1.5">
-                  <Layers className="h-3.5 w-3.5 text-[var(--primary)]" /> Auto-Configured Schema Fields
-                </span>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {matchedPreset.fields.map((f, i) => (
-                    <div
-                      key={i}
-                      className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2.5 text-xs font-mono"
-                    >
-                      <div className="flex items-center justify-between text-[var(--text-muted)] text-[10px]">
-                        <span>Field #{i + 1}</span>
-                        <span className="text-[var(--primary)] uppercase font-bold">[{f.fieldType}]</span>
-                      </div>
-                      <span className="font-bold text-[var(--text)] block truncate mt-0.5">{f.fieldName}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Views & Metrics */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 space-y-1">
-                  <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase flex items-center gap-1">
-                    <Grid className="h-3 w-3 text-cyan-400" /> Supported Views
-                  </span>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {matchedPreset.views.map((v) => (
-                      <span key={v} className="rounded bg-[var(--card)] px-2 py-0.5 text-[10px] text-[var(--text)] border border-[var(--border)] font-bold">
-                        {v}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 space-y-1">
-                  <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase flex items-center gap-1">
-                    <BarChart3 className="h-3 w-3 text-amber-400" /> Auto Metrics & Analytics
-                  </span>
-                  <p className="text-[11px] font-bold text-[var(--text)] truncate">
-                    {matchedPreset.metrics.join(" • ")}
-                  </p>
-                </div>
-              </div>
+            <div className="relative">
+              <Search className="absolute left-3.5 top-3 h-4 w-4 text-[var(--text-muted)]" />
+              <input
+                type="text"
+                value={mediaQuery}
+                onChange={(e) => setMediaQuery(e.target.value)}
+                placeholder="Type title (e.g. One Piece, Inception, Harry Potter, Elden Ring)..."
+                className="w-full rounded-2xl border border-[var(--border)] bg-[var(--card)] pl-10 pr-4 py-2.5 text-xs text-[var(--text)] focus:border-[var(--primary)] focus:outline-none font-bold"
+              />
             </div>
 
-            {/* Other Alternative Templates */}
-            <div className="space-y-3">
-              <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                Or Browse Alternative Pre-Built Templates
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {PRESET_TEMPLATES.filter((p) => p.title !== matchedPreset.title)
-                  .slice(0, 4)
-                  .map((preset) => (
-                    <div
-                      key={preset.title}
-                      onClick={() => handleSelectPreset(preset)}
-                      className="group cursor-pointer rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 hover:border-[var(--primary)]/50 transition-all flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="flex h-9 w-9 items-center justify-center rounded-xl border"
-                          style={{
-                            backgroundColor: `${preset.color}15`,
-                            borderColor: `${preset.color}30`,
-                            color: preset.color,
-                          }}
-                        >
-                          <preset.icon className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <h5 className="text-xs font-bold text-[var(--text)] group-hover:text-[var(--primary)] transition-colors">
-                            {preset.title}
-                          </h5>
-                          <span className="text-[10px] text-[var(--text-muted)]">
-                            {preset.categoryName} • {preset.fields.length} Fields
-                          </span>
-                        </div>
-                      </div>
-                      <ArrowRight className="h-4 w-4 text-[var(--text-muted)] group-hover:text-[var(--primary)] group-hover:translate-x-1 transition-all" />
-                    </div>
-                  ))}
+            {/* Results Autocomplete Box */}
+            {isSearching ? (
+              <div className="flex items-center justify-center p-8 text-xs font-bold text-[var(--text-muted)] gap-2">
+                <RefreshCw className="h-4 w-4 animate-spin text-[var(--primary)]" /> Querying AniList, TMDB, Google Books & RAWG...
               </div>
+            ) : searchResults.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto custom-scrollbar p-1">
+                {searchResults.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => handleSelectMediaItem(item)}
+                    className={`flex items-center gap-3 p-3 rounded-2xl border cursor-pointer transition-all ${
+                      selectedMedia?.id === item.id
+                        ? "border-[var(--primary)] bg-[var(--primary)]/15 shadow-md"
+                        : "border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)]/50"
+                    }`}
+                  >
+                    {item.coverImage ? (
+                      <img
+                        src={item.coverImage}
+                        alt={item.title}
+                        className="h-16 w-12 rounded-xl object-cover border border-[var(--border)] shrink-0"
+                      />
+                    ) : (
+                      <div className="h-16 w-12 rounded-xl bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--primary)] shrink-0">
+                        <Tv className="h-5 w-5" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9px] font-extrabold uppercase text-[var(--primary)] truncate">
+                          {item.mediaType} • {item.source}
+                        </span>
+                        {item.rating != null && (
+                          <span className="flex items-center gap-0.5 text-[10px] font-black text-amber-400">
+                            <Star className="h-3 w-3 fill-amber-400" /> {item.rating}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="text-xs font-extrabold text-[var(--text)] truncate">{item.title}</h4>
+                      <p className="text-[10px] text-[var(--text-muted)] truncate">
+                        {item.totalUnits ? `${item.totalUnits} ${item.unitName || "Units"}` : "Ongoing"} • {item.creator || item.releaseYear}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : mediaQuery.length >= 2 ? (
+              <p className="text-xs text-center text-[var(--text-muted)] py-4 font-bold">
+                No external API results found for "{mediaQuery}". You can still proceed manually!
+              </p>
+            ) : null}
+
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => handleProceedToStep3(selectedMedia?.mediaType || "Collection Tracker")}
+                className="rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] px-6 py-2.5 text-xs font-bold text-white shadow-lg hover:opacity-90 transition-opacity flex items-center gap-2"
+              >
+                Proceed to Customization <ArrowRight className="h-4 w-4" />
+              </button>
             </div>
           </div>
         )}
 
-        {/* STEP 3: Allow Users to Customize & Launch */}
+        {/* STEP 3: Customize & Launch */}
         {step === 3 && (
-          <div className="space-y-6 animate-fadeIn">
-            <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
-              <div>
-                <h3 className="text-base font-extrabold text-[var(--text)]">Customize & Finalize Schema</h3>
-                <p className="text-xs text-[var(--text-muted)]">
-                  Fine-tune custom fields, target metrics, or start instantly.
-                </p>
-              </div>
-              <button
-                onClick={() => setStep(2)}
-                className="text-xs text-[var(--primary)] hover:underline flex items-center gap-1"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" /> Back to Templates
+          <div className="space-y-5 animate-fadeIn">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-extrabold text-[var(--text)]">Review & Customize Fields</h3>
+              <button onClick={() => setStep(1)} className="text-xs font-bold text-[var(--primary)] hover:underline">
+                ← Back to Start
               </button>
             </div>
 
-            <div className="space-y-4">
-              {/* Tracker Name & Target */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-[var(--text)] mb-1">Tracker Title *</label>
-                  <input
-                    type="text"
-                    required
-                    value={customTitle}
-                    onChange={(e) => setCustomTitle(e.target.value)}
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3.5 py-2 text-xs text-[var(--text)] focus:border-[var(--primary)] focus:outline-none font-bold"
-                  />
+            {/* Live Tracker Card Preview Banner */}
+            <div className="flex items-center gap-4 p-3 rounded-2xl border border-[var(--primary)]/30 bg-gradient-to-r from-[var(--primary)]/10 via-[var(--card)] to-transparent shadow-sm">
+              {coverImage ? (
+                <img src={coverImage} alt="Cover Preview" className="h-16 w-12 rounded-xl object-cover border border-[var(--border)] shadow-md shrink-0" />
+              ) : (
+                <div className="h-16 w-12 rounded-xl bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--primary)] shrink-0 shadow-inner">
+                  <Layers className="h-5 w-5 opacity-70" />
                 </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[var(--text)] mb-1">Category & Type</label>
-                  <div className="flex gap-2">
-                    <select
-                      value={customCategory}
-                      onChange={(e) => setCustomCategory(e.target.value)}
-                      className="w-1/2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-2.5 py-2 text-xs text-[var(--text)] focus:border-[var(--primary)] focus:outline-none"
-                    >
-                      {categories.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </select>
-
-                    <select
-                      value={customType}
-                      onChange={(e) => setCustomType(e.target.value)}
-                      className="w-1/2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-2.5 py-2 text-xs text-[var(--text)] focus:border-[var(--primary)] focus:outline-none"
-                    >
-                      {trackerTypes.map((type) => (
-                        <option key={type.id} value={type.id}>
-                          {type.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Progress Target Goal */}
-              <div className="grid grid-cols-2 gap-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
-                <div>
-                  <label className="block text-xs font-bold text-[var(--text)] mb-1">Goal Target Count</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={targetCount}
-                    onChange={(e) => setTargetCount(e.target.value)}
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-bold text-[var(--text)] focus:border-[var(--primary)] focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-[var(--text)] mb-1">Unit Label</label>
-                  <input
-                    type="text"
-                    value={unitLabel}
-                    onChange={(e) => setUnitLabel(e.target.value)}
-                    placeholder="e.g. movies, kg, books, $"
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs text-[var(--text)] focus:border-[var(--primary)] focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Interactive Field Builder */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5 uppercase tracking-wider">
-                    <Sliders className="h-4 w-4 text-[var(--primary)]" /> Custom Field Builder ({customFields.length})
+              )}
+              <div className="flex-1 min-w-0 space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] font-extrabold uppercase text-[var(--primary)] px-2 py-0.5 rounded-md bg-[var(--primary)]/10 border border-[var(--primary)]/20">
+                    {initialStatus.replace("_", " ")}
                   </span>
-                  <button
-                    type="button"
-                    onClick={handleAddField}
-                    className="text-xs font-bold text-[var(--primary)] hover:underline flex items-center gap-1"
-                  >
-                    <Plus className="h-3.5 w-3.5" /> Add Field
-                  </button>
+                  <span className="text-[10px] font-bold text-[var(--text-muted)]">
+                    {isOngoing ? "∞ ONGOING SERIES" : `${initialCurrentCount} of ${targetCount} ${unitLabel}`}
+                  </span>
                 </div>
-
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
-                  {customFields.map((field, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] p-2.5"
-                    >
-                      <input
-                        type="text"
-                        value={field.fieldName}
-                        onChange={(e) => handleFieldChange(idx, "fieldName", e.target.value)}
-                        placeholder="Field Name"
-                        className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-xs text-[var(--text)] focus:border-[var(--primary)] focus:outline-none"
-                      />
-                      <select
-                        value={field.fieldType}
-                        onChange={(e) => handleFieldChange(idx, "fieldType", e.target.value)}
-                        className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-xs text-[var(--text)] focus:border-[var(--primary)] focus:outline-none font-bold"
-                      >
-                        <option value="TEXT">TEXT</option>
-                        <option value="NUMBER">NUMBER</option>
-                        <option value="DATE">DATE</option>
-                        <option value="SELECT">SELECT</option>
-                      </select>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveField(idx)}
-                        className="p-1 rounded bg-rose-500/10 text-rose-400 hover:bg-rose-500/20"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                <h4 className="text-sm font-extrabold text-[var(--text)] truncate">
+                  {customTitle || "My Custom Tracker"}
+                </h4>
               </div>
             </div>
 
-            {/* Launch Actions */}
-            <div className="flex items-center justify-end gap-3 border-t border-[var(--border)] pt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-extrabold uppercase text-[var(--text-muted)]">Tracker Title</label>
+                <input
+                  type="text"
+                  value={customTitle}
+                  onChange={(e) => setCustomTitle(e.target.value)}
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-xs font-bold text-[var(--text)] focus:border-[var(--primary)] focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-extrabold uppercase text-[var(--text-muted)]">Manual Cover Image URL Override</label>
+                <div className="relative">
+                  <ImageIcon className="absolute left-3 top-2.5 h-3.5 w-3.5 text-[var(--text-muted)]" />
+                  <input
+                    type="text"
+                    value={coverImage}
+                    onChange={(e) => setCoverImage(e.target.value)}
+                    placeholder="https://image-url.jpg"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] pl-9 pr-3 py-2 text-xs font-bold text-[var(--text)] focus:border-[var(--primary)] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] p-3">
+                <div>
+                  <h4 className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 text-emerald-400" /> Ongoing Series / Unlimited Units
+                  </h4>
+                  <p className="text-[10px] text-[var(--text-muted)]">Check this if episodes/pages are continuously releasing (e.g. One Piece, Habits)</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={isOngoing}
+                  onChange={(e) => setIsOngoing(e.target.checked)}
+                  className="h-4 w-4 rounded accent-[var(--primary)] cursor-pointer"
+                />
+              </div>
+
+              {!isOngoing && (
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold uppercase text-[var(--text-muted)]">Target Units Count</label>
+                  <input
+                    type="number"
+                    value={targetCount}
+                    onChange={(e) => setTargetCount(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-xs font-bold text-[var(--text)] focus:border-[var(--primary)] focus:outline-none"
+                  />
+                </div>
+              )}
+
+              {/* Status & Initial Watched Progress */}
+              <div className="grid grid-cols-2 gap-3 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)]">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold uppercase text-[var(--text-muted)]">Status</label>
+                  <select
+                    value={initialStatus}
+                    onChange={(e) => {
+                      const newStat = e.target.value;
+                      setInitialStatus(newStat);
+                      if (newStat === "COMPLETED" && targetCount > 0 && !isOngoing) {
+                        setInitialCurrentCount(targetCount);
+                      }
+                    }}
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs font-bold text-[var(--text)] focus:border-[var(--primary)] focus:outline-none cursor-pointer"
+                  >
+                    <option value="IN_PROGRESS" className="bg-[var(--surface)] text-[var(--text)]">Currently Watching / In Progress</option>
+                    <option value="COMPLETED" className="bg-[var(--surface)] text-[var(--text)]">Completed / Archived</option>
+                    <option value="PLAN_TO_WATCH" className="bg-[var(--surface)] text-[var(--text)]">Plan to Track</option>
+                    <option value="PAUSED" className="bg-[var(--surface)] text-[var(--text)]">On Hold / Paused</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold uppercase text-[var(--text-muted)]">Already Watched / Read</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={initialCurrentCount}
+                    onChange={(e) => setInitialCurrentCount(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs font-bold text-[var(--text)] focus:border-[var(--primary)] focus:outline-none"
+                  />
+                </div>
+
+                {!isOngoing && targetCount > 0 && initialStatus !== "COMPLETED" && (
+                  <div className="col-span-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInitialStatus("COMPLETED");
+                        setInitialCurrentCount(targetCount);
+                      }}
+                      className="text-[10px] font-extrabold text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1"
+                    >
+                      <CheckCircle2 className="h-3 w-3" /> Click here if you have already completed this series ({targetCount} {unitLabel})
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-extrabold uppercase text-[var(--text-muted)] flex items-center gap-1">
+                  <Folder className="h-3 w-3 text-[var(--primary)]" /> Category
+                </label>
+                <select
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-xs font-bold text-[var(--text)] focus:border-[var(--primary)] focus:outline-none cursor-pointer"
+                >
+                  <option value="">Uncategorized / General</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id} className="bg-[var(--surface)] text-[var(--text)]">
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-extrabold uppercase text-[var(--text-muted)] flex items-center gap-1">
+                  <Star className="h-3 w-3 text-amber-400 fill-amber-400" /> Rating (1-10)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="10"
+                  step="0.1"
+                  value={rating}
+                  onChange={(e) => setRating(e.target.value)}
+                  placeholder="e.g. 8.2"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-xs font-bold text-[var(--text)] focus:border-[var(--primary)] focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-extrabold uppercase text-[var(--text-muted)]">Unit Label</label>
+                <input
+                  type="text"
+                  value={unitLabel}
+                  onChange={(e) => setUnitLabel(e.target.value)}
+                  placeholder="episodes, pages, hours, modules"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-xs font-bold text-[var(--text)] focus:border-[var(--primary)] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-extrabold uppercase text-[var(--text-muted)]">Synopsis & Overview Notes</label>
+              <textarea
+                rows={3}
+                value={customDescription}
+                onChange={(e) => setCustomDescription(e.target.value)}
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 text-xs text-[var(--text)] focus:border-[var(--primary)] focus:outline-none custom-scrollbar"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
               <button
-                type="button"
                 onClick={onClose}
-                className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2.5 text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text)]"
+                className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2.5 text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
               >
                 Cancel
               </button>
               <button
-                type="button"
-                disabled={isSubmitting}
                 onClick={handleCreateTrackerSubmit}
-                className="rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] px-6 py-2.5 text-xs font-bold text-white shadow-xl shadow-[var(--primary)]/30 hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50"
+                disabled={isSubmitting}
+                className="rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] px-6 py-2.5 text-xs font-bold text-white shadow-lg hover:opacity-90 transition-opacity flex items-center gap-2"
               >
-                <Sparkles className="h-4 w-4" /> Launch Tracker
+                {isSubmitting ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" /> Launching...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4" /> Create Tracker
+                  </>
+                )}
               </button>
             </div>
           </div>

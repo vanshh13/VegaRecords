@@ -63,7 +63,8 @@ export default function NoteCard({ note }) {
       </div>
 
       {/* Footer Metrics & Actions */}
-      <div className="flex items-center justify-between border-t border-[var(--border)] pt-3 mt-4 text-[10px] text-[var(--text-muted)]">
+      <div className="flex items-center justify-between flex-wrap gap-2 border-t border-[var(--border)] pt-3 mt-4 text-[10px] text-[var(--text-muted)]">
+
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1">
             <FileText className="h-3 w-3" /> {wordCount} words

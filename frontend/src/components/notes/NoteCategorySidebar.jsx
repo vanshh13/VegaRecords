@@ -89,7 +89,7 @@ export default function NoteCategorySidebar() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
             onClick={closeCategorySidebar}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
           />
 
           {/* Slide-Over Panel */}
@@ -99,7 +99,7 @@ export default function NoteCategorySidebar() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 280 }}
-            className="cat-sidebar z-50"
+            className="cat-sidebar z-[101]"
           >
             {/* Panel Header */}
             <div className="cat-sidebar-header">

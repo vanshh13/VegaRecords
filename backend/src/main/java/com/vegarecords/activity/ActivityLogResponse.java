@@ -18,6 +18,10 @@ public class ActivityLogResponse {
     private String entityType;
     private UUID entityId;
     private String action;
+    private String title;
+    private String description;
+    private String level;
+    private String priority;
     private String metadata;
     private LocalDateTime createdAt;
 }

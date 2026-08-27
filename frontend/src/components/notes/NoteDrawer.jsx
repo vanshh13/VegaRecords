@@ -28,10 +28,23 @@ export default function NoteDrawer() {
     } else {
       setTitle("");
       setContent("");
-      setCategoryId("");
+      const activeCat = useNoteStore.getState().filters.categoryId;
+      setCategoryId(activeCat || (categories.length > 0 ? categories[0].id : ""));
       setIsFavorite(false);
     }
-  }, [editingNote, drawerOpen]);
+  }, [editingNote, drawerOpen, categories]);
+
+
+  // Handle ESC key to close
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && drawerOpen) {
+        closeDrawer();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [drawerOpen, closeDrawer]);
 
   if (!drawerOpen) return null;
 
@@ -60,13 +73,13 @@ export default function NoteDrawer() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden font-mono">
+    <div className="fixed inset-0 z-[100] overflow-hidden font-mono">
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity cursor-pointer"
         onClick={closeDrawer}
       />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10 z-[101]">
         <div className="w-screen max-w-md bg-[var(--surface)] border-l border-[var(--border)] shadow-2xl flex flex-col justify-between">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-[var(--border)]">

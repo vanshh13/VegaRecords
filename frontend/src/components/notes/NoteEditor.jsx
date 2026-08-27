@@ -20,10 +20,12 @@ import {
   Tag,
   Maximize2,
   Minimize2,
+  X,
 } from "lucide-react";
 
 export default function NoteEditor({ note, onSave }) {
-  const { updateNote, focusMode, toggleFocusMode } = useNoteStore();
+  const { updateNote, focusMode, toggleFocusMode, setSelectedNote } = useNoteStore();
+
 
   const [title, setTitle] = useState(note?.title || "");
   const [content, setContent] = useState(note?.content || "");
@@ -211,8 +213,17 @@ export default function NoteEditor({ note, onSave }) {
           >
             <Save className="h-3.5 w-3.5" /> Save
           </button>
+
+          <button
+            onClick={() => setSelectedNote(null)}
+            className="p-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:text-[var(--text)] hover:border-rose-500/40 hover:bg-rose-500/10 transition-colors"
+            title="Close Editor (Return to Full Grid View)"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
       </div>
+
 
       {/* Editor Body */}
       <div className="flex-1 flex flex-col p-6 space-y-4 overflow-y-auto">

@@ -57,7 +57,7 @@ export default function TaskDrawer() {
       setCategoryId(editingTask.categoryId || "");
       setPriority(editingTask.priority || "MEDIUM");
       setStatus(editingTask.status || "TODO");
-      setDueDate(editingTask.dueDate || "");
+      setDueDate(editingTask.dueDate ? editingTask.dueDate.split("T")[0] : "");
       setKeepAfterCompletion(editingTask.keepAfterCompletion ?? true);
     } else {
       setTitle("");
@@ -75,6 +75,11 @@ export default function TaskDrawer() {
     if (!title.trim()) return;
 
     const matchedCat = categories.find((c) => c.id === categoryId);
+    let formattedDueDate = null;
+    if (dueDate) {
+      formattedDueDate = dueDate.includes("T") ? dueDate : `${dueDate}T00:00:00`;
+    }
+
     const payload = {
       title: title.trim(),
       description: description.trim(),
@@ -83,9 +88,10 @@ export default function TaskDrawer() {
       categoryColor: matchedCat ? matchedCat.color : "#8b5cf6",
       priority,
       status,
-      dueDate: dueDate || null,
+      dueDate: formattedDueDate,
       keepAfterCompletion,
     };
+
 
     if (drawerMode === "edit" && editingTask) {
       updateTask(editingTask.id, payload);
@@ -99,7 +105,7 @@ export default function TaskDrawer() {
   return (
     <AnimatePresence>
       {isDrawerOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden">
+        <div className="fixed inset-0 z-[100] overflow-hidden">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -107,11 +113,11 @@ export default function TaskDrawer() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={closeDrawer}
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm cursor-pointer"
           />
 
           {/* Drawer */}
-          <div className="fixed inset-y-0 right-0 flex max-w-full pl-8 sm:pl-16">
+          <div className="fixed inset-y-0 right-0 flex max-w-full pl-8 sm:pl-16 z-[101]">
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
@@ -186,9 +192,9 @@ export default function TaskDrawer() {
                     onChange={(e) => setCategoryId(e.target.value)}
                     className="drawer-input drawer-select"
                   >
-                    <option value="">Uncategorized</option>
+                    <option value="" className="bg-[var(--surface)] text-[var(--text)]">Uncategorized</option>
                     {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
+                      <option key={cat.id} value={cat.id} className="bg-[var(--surface)] text-[var(--text)]">
                         {cat.name}
                       </option>
                     ))}
@@ -226,7 +232,7 @@ export default function TaskDrawer() {
                       className="drawer-input drawer-select"
                     >
                       {STATUS_OPTIONS.map((s) => (
-                        <option key={s.value} value={s.value}>
+                        <option key={s.value} value={s.value} className="bg-[var(--surface)] text-[var(--text)]">
                           {s.label}
                         </option>
                       ))}

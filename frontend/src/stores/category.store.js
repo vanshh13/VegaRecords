@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { categoryApi } from "@/apis/category.api";
+import { logSystemEvent } from "@/utils/eventLogger";
 
 export const useCategoryStore = create((set, get) => ({
   categories: [],
@@ -7,6 +8,9 @@ export const useCategoryStore = create((set, get) => ({
   expandedNodeIds: [],
   searchTerm: "",
   isLoading: false,
+
+  // Inspector state (hidden by default)
+  isInspectorOpen: false,
 
   // Drawer state
   isDrawerOpen: false,
@@ -34,6 +38,18 @@ export const useCategoryStore = create((set, get) => ({
 
   selectCategory: (id) => {
     set({ selectedCategoryId: id });
+  },
+
+  toggleInspector: () => {
+    set((state) => ({ isInspectorOpen: !state.isInspectorOpen }));
+  },
+
+  openInspector: () => {
+    set({ isInspectorOpen: true });
+  },
+
+  closeInspector: () => {
+    set({ isInspectorOpen: false });
   },
 
   toggleNodeExpand: (id) => {
@@ -88,6 +104,19 @@ export const useCategoryStore = create((set, get) => ({
     try {
       const created = await categoryApi.create(categoryData);
       const parentId = created.parentCategoryId || created.parentId;
+      
+      logSystemEvent({
+        entityType: "CATEGORY",
+        entityId: created.id,
+        action: "CREATE",
+        title: `Created Category Node: ${created.name}`,
+        description: created.description || `New category node added to hierarchy tree.`,
+        level: parentId ? "Level 1 Sub-Tree" : "Level 0 Root",
+        priority: "MEDIUM",
+        notificationType: "INFO",
+        link: "/categories",
+      });
+
       set((state) => {
         const updatedCategories = [...state.categories, created];
         const updatedExpanded = parentId
@@ -109,6 +138,18 @@ export const useCategoryStore = create((set, get) => ({
   updateCategory: async (id, updatedFields) => {
     try {
       await categoryApi.update(id, updatedFields);
+      logSystemEvent({
+        entityType: "CATEGORY",
+        entityId: id,
+        action: "UPDATE",
+        title: `Updated Category Node: ${updatedFields.name || "Tree Category"}`,
+        description: `Modified category node properties in workspace.`,
+        level: "Level 1 Category",
+        priority: "LOW",
+        notificationType: "INFO",
+        link: "/categories",
+      });
+
       set((state) => ({
         categories: state.categories.map((cat) =>
           cat.id === id ? { ...cat, ...updatedFields } : cat
@@ -126,6 +167,18 @@ export const useCategoryStore = create((set, get) => ({
   deleteCategory: async (id) => {
     try {
       await categoryApi.delete(id);
+      logSystemEvent({
+        entityType: "CATEGORY",
+        entityId: id,
+        action: "DELETE",
+        title: `Deleted Category Tree Node`,
+        description: `Removed category node from workspace database.`,
+        level: "Level 0 Root",
+        priority: "HIGH",
+        notificationType: "WARNING",
+        link: "/categories",
+      });
+
       set((state) => {
         const idsToDelete = new Set([id]);
         let changed = true;

@@ -37,8 +37,12 @@ public class TrackerTypeField {
     @Column(name = "display_order")
     private Integer displayOrder = 0;
 
+    @Column(name = "options", columnDefinition = "TEXT")
+    private String options;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
 
     @PrePersist
     protected void onCreate() {

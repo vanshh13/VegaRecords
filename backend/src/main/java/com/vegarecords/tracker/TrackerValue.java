@@ -24,10 +24,10 @@ public class TrackerValue {
     private Tracker tracker;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tracker_field_id", nullable = false)
+    @JoinColumn(name = "tracker_field_id", nullable = true)
     private TrackerTypeField trackerField;
 
-    @Column(name = "value_json", columnDefinition = "jsonb")
+    @Column(name = "value_json", columnDefinition = "TEXT")
     private String valueJson;
 
     @Column(name = "created_at", updatable = false)

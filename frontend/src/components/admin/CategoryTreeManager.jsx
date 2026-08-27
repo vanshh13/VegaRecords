@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAuthStore } from "@/stores/auth.store";
 import {
   FolderTree,
@@ -11,14 +11,15 @@ import {
   Tag,
   Save,
   X,
-  CheckSquare,
-  Square,
   Globe,
   User,
+  Search,
 } from "lucide-react";
 import { categoryApi } from "@/apis/category.api";
+import { ICON_MAP } from "@/components/categories/CategoryTreeExplorer";
 
 const PRESET_COLORS = ["#6366f1", "#3b82f6", "#10b981", "#ec4899", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
+
 
 export default function CategoryTreeManager({ categories, onRefresh }) {
   const { user } = useAuthStore();
@@ -28,6 +29,8 @@ export default function CategoryTreeManager({ categories, onRefresh }) {
   const [expandedNodes, setExpandedNodes] = useState({});
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
 
   const [formData, setFormData] = useState({
     name: "",
@@ -144,13 +147,25 @@ export default function CategoryTreeManager({ categories, onRefresh }) {
     return items.filter((item) => getParentId(item) === targetParentId);
   };
 
+  // Search filtering logic
+  const filteredCategories = useMemo(() => {
+    if (!searchQuery.trim()) return categories;
+    const q = searchQuery.toLowerCase().trim();
+    return categories.filter(
+      (cat) =>
+        cat.name.toLowerCase().includes(q) ||
+        (cat.description && cat.description.toLowerCase().includes(q))
+    );
+  }, [categories, searchQuery]);
+
   const displayCategories = categories;
   const rootCategories = buildTree(displayCategories, null);
 
   const renderNode = (node, depth = 0) => {
     const children = buildTree(displayCategories, node.id);
     const hasChildren = children.length > 0;
-    const isExpanded = !!expandedNodes[node.id];
+    const isExpanded = searchQuery.trim() ? true : !!expandedNodes[node.id];
+    const IconComp = ICON_MAP[node.icon] || Tag;
 
     return (
       <div key={node.id} className="space-y-1 font-mono">
@@ -174,7 +189,7 @@ export default function CategoryTreeManager({ categories, onRefresh }) {
               className="flex h-8 w-8 items-center justify-center rounded-lg text-white font-bold text-xs shadow-sm"
               style={{ backgroundColor: node.color || "#6366f1" }}
             >
-              <Tag className="h-4 w-4" />
+              <IconComp className="h-4 w-4" />
             </div>
 
             <div>
@@ -253,28 +268,48 @@ export default function CategoryTreeManager({ categories, onRefresh }) {
   };
 
   return (
-    <div className="space-y-6 font-mono">
-      {/* Header Actions */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-base font-extrabold text-[var(--text)] flex items-center gap-2">
-            <Shield className="h-4 w-4 text-[var(--primary)]" /> System & Custom Category Manager
-          </h2>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">
-            Admins can assign any category as a global System Category or manage custom workspace categories.
-          </p>
+    <div className="space-y-5 font-mono">
+      {/* Search Input Bar & Creation Trigger */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[var(--surface)] p-3 rounded-2xl border border-[var(--border)]">
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-3.5 top-3 h-4 w-4 text-[var(--text-muted)]" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search category tree by name or description..."
+            className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] py-2 pl-10 pr-9 text-xs text-[var(--text)] placeholder-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none transition-all"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-2.5 p-1 text-[var(--text-muted)] hover:text-[var(--text)]"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
 
         <button
           onClick={() => handleOpenCreate("")}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] px-4 py-2 text-xs font-bold text-white shadow-lg shadow-[var(--primary)]/25 hover:opacity-90 transition-opacity"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-[var(--primary)]/25 hover:opacity-90 transition-opacity shrink-0"
         >
           <Plus className="h-4 w-4" /> Create Category
         </button>
       </div>
 
-      {/* Category Tree View */}
-      {rootCategories.length === 0 ? (
+      {/* Category List */}
+      {searchQuery.trim() ? (
+        <div className="space-y-2">
+          {filteredCategories.length === 0 ? (
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-8 text-center text-xs text-[var(--text-muted)]">
+              No categories match "{searchQuery}".
+            </div>
+          ) : (
+            filteredCategories.map((node) => renderNode(node, 0))
+          )}
+        </div>
+      ) : rootCategories.length === 0 ? (
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-12 text-center text-xs text-[var(--text-muted)]">
           No categories created yet. Click "Create Category" to add one.
         </div>
@@ -282,121 +317,162 @@ export default function CategoryTreeManager({ categories, onRefresh }) {
         <div className="space-y-2">{rootCategories.map((root) => renderNode(root, 0))}</div>
       )}
 
-      {/* Drawer / Modal for Creation and Editing */}
+
+      {/* Slide-over Right Sidebar Drawer for Creation and Editing */}
       {drawerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-lg rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-2xl space-y-5">
-            <button
-              onClick={() => setDrawerOpen(false)}
-              className="absolute right-4 top-4 rounded-full p-1.5 text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text)] transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
+        <div
+          onClick={() => setDrawerOpen(false)}
+          className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm transition-opacity cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md bg-[var(--surface)] border-l border-[var(--border)] p-6 shadow-2xl flex flex-col justify-between overflow-y-auto custom-scrollbar h-full space-y-6 cursor-default"
+          >
 
-            <h3 className="text-base font-extrabold text-[var(--text)] flex items-center gap-2">
-              <FolderTree className="h-5 w-5 text-[var(--primary)]" />
-              {editingCategory ? "Edit Category" : "Create Category"}
-            </h3>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-[var(--text)] mb-1.5">Category Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g. Education, Health, Sports..."
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2.5 text-xs text-[var(--text)] focus:border-[var(--primary)] focus:outline-none"
-                />
-              </div>
-
-              {/* System Category Privilege Checkbox */}
-              <div className="rounded-xl border border-[var(--primary)]/30 bg-[var(--primary)]/10 p-3.5 flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <span className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
-                    <Shield className="h-3.5 w-3.5 text-[var(--primary)]" /> Assign as System Category
-                  </span>
-                  <p className="text-[10px] text-[var(--text-muted)]">
-                    System categories are globally visible across all user workspaces.
-                  </p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={formData.isSystem}
-                  onChange={(e) => setFormData({ ...formData, isSystem: e.target.checked })}
-                  className="h-4 w-4 rounded border-[var(--border)] bg-[var(--card)] text-[var(--primary)] focus:ring-[var(--primary)] accent-[var(--primary)] cursor-pointer"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[var(--text)] mb-1.5">Description</label>
-                <textarea
-                  rows={2}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Brief description of this category..."
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 text-xs text-[var(--text)] focus:border-[var(--primary)] focus:outline-none resize-none"
-                />
-              </div>
-
-              {/* Color Selection */}
-              <div>
-                <label className="block text-xs font-bold text-[var(--text)] mb-1.5">Category Accent Color</label>
-                <div className="flex flex-wrap items-center gap-2">
-                  {PRESET_COLORS.map((c) => (
-                    <button
-                      type="button"
-                      key={c}
-                      onClick={() => setFormData({ ...formData, color: c })}
-                      className={`h-7 w-7 rounded-lg transition-transform ${
-                        formData.color === c ? "scale-110 ring-2 ring-white ring-offset-2 ring-offset-black" : "opacity-80"
-                      }`}
-                      style={{ backgroundColor: c }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Parent Category Selection */}
-              <div>
-                <label className="block text-xs font-bold text-[var(--text)] mb-1.5">Parent Category (Optional)</label>
-                <select
-                  value={formData.parentCategoryId}
-                  onChange={(e) => setFormData({ ...formData, parentCategoryId: e.target.value })}
-                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2.5 text-xs text-[var(--text)] focus:border-[var(--primary)] focus:outline-none"
-                >
-                  <option value="" className="bg-[var(--surface)] text-[var(--text)]">None (Root Category)</option>
-                  {displayCategories
-                    .filter((c) => c.id !== editingCategory?.id)
-                    .map((c) => (
-                      <option key={c.id} value={c.id} className="bg-[var(--surface)] text-[var(--text)]">
-                        {c.name}
-                      </option>
-                    ))}
-                </select>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--border)]">
+            <div className="space-y-6">
+              {/* Top Bar */}
+              <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
+                <h3 className="text-sm font-extrabold text-[var(--text)] font-mono uppercase tracking-wider flex items-center gap-2">
+                  <FolderTree className="h-5 w-5 text-[var(--primary)]" />
+                  {editingCategory ? "Edit Category Node" : "New Category Node"}
+                </h3>
                 <button
-                  type="button"
                   onClick={() => setDrawerOpen(false)}
-                  className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text)]"
+                  className="rounded-lg p-1.5 text-[var(--text-muted)] hover:bg-[var(--hover-bg)] hover:text-[var(--text)] transition-colors"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] px-5 py-2 text-xs font-bold text-white shadow-lg shadow-[var(--primary)]/25 flex items-center gap-2 disabled:opacity-50"
-                >
-                  <Save className="h-4 w-4" /> Save Category
+                  <X className="h-4 w-4" />
                 </button>
               </div>
-            </form>
+
+              <form id="admin-category-form" onSubmit={handleSubmit} className="space-y-4 font-mono">
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text)] mb-1.5">Category Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="e.g. Education, Health, Sports..."
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2.5 text-xs text-[var(--text)] focus:border-[var(--primary)] focus:outline-none"
+                  />
+                </div>
+
+                {/* System Category Privilege Checkbox */}
+                <div className="rounded-xl border border-[var(--primary)]/30 bg-[var(--primary)]/10 p-3.5 flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
+                      <Shield className="h-3.5 w-3.5 text-[var(--primary)]" /> Assign as System Category
+                    </span>
+                    <p className="text-[10px] text-[var(--text-muted)]">
+                      System categories are globally visible across all user workspaces.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={formData.isSystem}
+                    onChange={(e) => setFormData({ ...formData, isSystem: e.target.checked })}
+                    className="h-4 w-4 rounded border-[var(--border)] bg-[var(--card)] text-[var(--primary)] focus:ring-[var(--primary)] accent-[var(--primary)] cursor-pointer"
+                  />
+                </div>
+
+                {/* Node Icon Picker */}
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text)] mb-1.5">Node Icon</label>
+                  <div className="grid grid-cols-5 gap-2 max-h-36 overflow-y-auto p-2 border border-[var(--border)] rounded-xl bg-[var(--card)] custom-scrollbar">
+                    {Object.keys(ICON_MAP).map((iconKey) => {
+                      const IconItem = ICON_MAP[iconKey];
+                      const isSelected = formData.icon === iconKey;
+                      return (
+                        <button
+                          key={iconKey}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, icon: iconKey })}
+                          className={`flex h-9 items-center justify-center rounded-lg border transition-all ${
+                            isSelected
+                              ? "border-[var(--primary)] bg-[var(--primary)]/20 text-[var(--primary)] font-bold shadow-sm"
+                              : "border-transparent text-[var(--text-muted)] hover:bg-[var(--hover-bg)]"
+                          }`}
+                        >
+                          <IconItem className="h-4 w-4" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text)] mb-1.5">Description</label>
+                  <textarea
+                    rows={3}
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Brief description of this category..."
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 text-xs text-[var(--text)] focus:border-[var(--primary)] focus:outline-none resize-none"
+                  />
+                </div>
+
+
+                {/* Color Selection */}
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text)] mb-1.5">Category Accent Color</label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {PRESET_COLORS.map((c) => (
+                      <button
+                        type="button"
+                        key={c}
+                        onClick={() => setFormData({ ...formData, color: c })}
+                        className={`h-7 w-7 rounded-lg transition-transform ${
+                          formData.color === c ? "scale-110 ring-2 ring-white ring-offset-2 ring-offset-black" : "opacity-80 hover:opacity-100"
+                        }`}
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Parent Category Selection */}
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text)] mb-1.5">Parent Category (Optional)</label>
+                  <select
+                    value={formData.parentCategoryId}
+                    onChange={(e) => setFormData({ ...formData, parentCategoryId: e.target.value })}
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2.5 text-xs text-[var(--text)] focus:border-[var(--primary)] focus:outline-none"
+                  >
+                    <option value="" className="bg-[var(--surface)] text-[var(--text)]">None (Root Category)</option>
+                    {displayCategories
+                      .filter((c) => c.id !== editingCategory?.id)
+                      .map((c) => (
+                        <option key={c.id} value={c.id} className="bg-[var(--surface)] text-[var(--text)]">
+                          {c.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </form>
+            </div>
+
+            {/* Footer Action Buttons */}
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--border)] mt-auto">
+              <button
+                type="button"
+                onClick={() => setDrawerOpen(false)}
+                className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2.5 text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text)] font-mono"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="admin-category-form"
+                disabled={isSubmitting}
+                className="rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-[var(--primary)]/25 flex items-center gap-2 disabled:opacity-50 font-mono"
+              >
+                <Save className="h-4 w-4" /> Save Category
+              </button>
+            </div>
           </div>
         </div>
       )}
+
     </div>
   );
 }

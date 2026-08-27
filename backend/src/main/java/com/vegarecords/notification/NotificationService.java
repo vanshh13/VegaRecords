@@ -19,6 +19,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final NotificationBroadcaster notificationBroadcaster;
 
     public Page<NotificationResponse> getNotifications(String userEmail, int page, int size) {
         User user = userRepository.findByEmail(userEmail)
@@ -27,6 +28,28 @@ public class NotificationService {
         Pageable pageable = PageRequest.of(page, size);
         return notificationRepository.findByUserOrderByCreatedAtDesc(user, pageable)
                 .map(this::toResponse);
+    }
+
+    @Transactional
+    public NotificationResponse createNotification(String userEmail, String title, String message, String notificationType) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Notification notification = Notification.builder()
+                .user(user)
+                .title(title)
+                .message(message)
+                .notificationType(notificationType != null ? notificationType : "INFO")
+                .isRead(false)
+                .build();
+
+        Notification saved = notificationRepository.save(notification);
+        NotificationResponse response = toResponse(saved);
+
+        // Broadcast real-time over WebSocket
+        notificationBroadcaster.broadcastNotification(response);
+
+        return response;
     }
 
     @Transactional

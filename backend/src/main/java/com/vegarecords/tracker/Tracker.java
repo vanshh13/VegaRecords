@@ -1,12 +1,15 @@
 package com.vegarecords.tracker;
 
 import com.vegarecords.auth.entity.User;
+import com.vegarecords.category.Category;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -42,6 +45,40 @@ public class Tracker {
     @Builder.Default
     @Column(length = 50)
     private String status = "ACTIVE";
+
+    @Column(name = "cover_url", columnDefinition = "TEXT")
+    private String coverUrl;
+
+    @Column(name = "current_count")
+    @Builder.Default
+    private Integer currentCount = 0;
+
+    @Column(name = "target_count")
+    @Builder.Default
+    private Integer targetCount = 100;
+
+    @Column(name = "unit_label", length = 50)
+    private String unitLabel;
+
+    @Column(name = "rating")
+    private Double rating;
+
+    @Column(name = "is_ongoing")
+    @Builder.Default
+    private Boolean isOngoing = false;
+
+    @Column(name = "is_favorite")
+    @Builder.Default
+    private Boolean isFavorite = false;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "tracker_categories",
+            joinColumns = @JoinColumn(name = "tracker_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    @Builder.Default
+    private Set<Category> categories = new HashSet<>();
 
     @OneToMany(mappedBy = "tracker", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

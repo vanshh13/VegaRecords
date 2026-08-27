@@ -5,6 +5,7 @@ import Link from "next/link";
 import MainLayout from "@/components/layout/MainLayout";
 import { useTaskStore } from "@/stores/task.store";
 import { taskApi } from "@/apis/task.api";
+import { formatDueDate, formatFullDateTime } from "@/utils/dateUtils";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -121,7 +122,7 @@ export default function TaskDetailPage({ params }) {
 
                 <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-[var(--text-muted)]">
                   <span className="flex items-center gap-1">
-                    <Calendar className="h-3.5 w-3.5" /> Due: {task.dueDate || "No deadline"}
+                    <Calendar className="h-3.5 w-3.5" /> Due: {task.dueDate ? formatDueDate(task.dueDate) : "No deadline"}
                   </span>
                   <span>•</span>
                   <span className="uppercase font-bold text-[var(--primary)]">PRIORITY: {task.priority}</span>
@@ -175,7 +176,7 @@ export default function TaskDetailPage({ params }) {
               <span className="flex items-center gap-2">
                 <Clock className="h-3.5 w-3.5 text-cyan-400" /> Task Created
               </span>
-              <span>{task.createdAt ? new Date(task.createdAt).toLocaleString() : "AUG 2026"}</span>
+              <span>{task.createdAt ? formatFullDateTime(task.createdAt) : "AUG 2026"}</span>
             </div>
 
             <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--card)] border border-[var(--border)]">

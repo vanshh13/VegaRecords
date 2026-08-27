@@ -54,18 +54,6 @@ export default function NoteHeader({ onOpenCommandPalette }) {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Command Palette Trigger */}
-          <button
-            onClick={onOpenCommandPalette}
-            className="flex items-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
-          >
-            <Command className="h-3.5 w-3.5 text-[var(--primary)]" />
-            <span className="hidden sm:inline">Search</span>
-            <kbd className="rounded bg-[var(--card)] px-1.5 py-0.5 text-[9px] border border-[var(--border)]">
-              Ctrl+K
-            </kbd>
-          </button>
-
           {/* New Note Button */}
           <button
             onClick={() => openDrawer()}
@@ -74,6 +62,7 @@ export default function NoteHeader({ onOpenCommandPalette }) {
             <Plus className="h-4 w-4" /> New Note
           </button>
         </div>
+
       </div>
 
       {/* Control Bar */}

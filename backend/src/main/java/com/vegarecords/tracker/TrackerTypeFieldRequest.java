@@ -20,4 +20,6 @@ public class TrackerTypeFieldRequest {
 
     private Boolean isRequired;
     private Integer displayOrder;
+    private String options;
 }
+

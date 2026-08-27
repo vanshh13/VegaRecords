@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useThemeStore, PRESETS } from "@/stores/theme.store";
+import PunkRecordsCoreCanvas from "@/components/theme/renderers/PunkRecordsCore";
 
 export default function AnimatedBackground() {
   const canvasRef = useRef(null);
@@ -9,7 +10,7 @@ export default function AnimatedBackground() {
     useThemeStore();
 
   useEffect(() => {
-    if (backgroundType !== "animated") return;
+    if (backgroundType !== "animated" || motionPreset === "punk-records-core") return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -347,7 +348,7 @@ export default function AnimatedBackground() {
   if (backgroundType === "image" && backgroundImage) {
     return (
       <div
-        className="fixed inset-0 z-0 bg-cover bg-center transition-all duration-700 pointer-events-none opacity-40"
+        className="fixed inset-0 z-0 bg-cover bg-center transition-all duration-700 pointer-events-none opacity-50"
         style={{ backgroundImage: `url(${backgroundImage})` }}
       />
     );
@@ -360,7 +361,7 @@ export default function AnimatedBackground() {
         loop
         muted
         playsInline
-        className="fixed inset-0 z-0 w-full h-full object-cover transition-all duration-700 pointer-events-none opacity-30"
+        className="fixed inset-0 z-0 w-full h-full object-cover transition-all duration-700 pointer-events-none opacity-40"
       >
         <source src={backgroundVideo} type="video/mp4" />
       </video>
@@ -369,10 +370,18 @@ export default function AnimatedBackground() {
 
   if (backgroundType === "animated") {
     return (
-      <canvas
-        ref={canvasRef}
-        className="fixed inset-0 z-0 pointer-events-none transition-opacity duration-700 opacity-70"
-      />
+      <div className="fixed inset-0 z-0 pointer-events-none opacity-85">
+        {/* Fixed PunkRecordsCore base visual engine */}
+        <PunkRecordsCoreCanvas />
+
+        {/* Dynamic motion preset overlay layer merged on top of Core */}
+        {motionPreset !== "punk-records-core" && (
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 h-full w-full pointer-events-none transition-opacity duration-700"
+          />
+        )}
+      </div>
     );
   }
 

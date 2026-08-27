@@ -17,6 +17,7 @@ import java.util.UUID;
 public interface TaskRepository extends JpaRepository<Task, UUID> {
 
     Optional<Task> findByIdAndUser(UUID id, User user);
+    List<Task> findByUser(User user);
 
     @Query("SELECT t FROM Task t LEFT JOIN t.category c WHERE t.user = :user " +
            "AND (:status IS NULL OR t.status = :status) " +

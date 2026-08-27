@@ -10,10 +10,10 @@ import ResourceCompactList from "@/components/resources/ResourceCompactList";
 import ResourceKnowledgeWall from "@/components/resources/ResourceKnowledgeWall";
 import ResourceDrawer from "@/components/resources/ResourceDrawer";
 import ResourceDetailsPanel from "@/components/resources/ResourceDetailsPanel";
-import { Bookmark, RefreshCw, Star, Info, Code2 } from "lucide-react";
+import { Bookmark, RefreshCw, Star, Info, Code2, Plus } from "lucide-react";
 
 export default function ResourcesPage() {
-  const { resources, isLoading, fetchResources, viewMode } = useResourceStore();
+  const { resources, isLoading, fetchResources, viewMode, openDrawer } = useResourceStore();
 
   useEffect(() => {
     fetchResources();
@@ -78,14 +78,20 @@ export default function ResourcesPage() {
                 <RefreshCw className="h-4 w-4 animate-spin text-[var(--primary)]" /> Loading resources...
               </div>
             ) : resources.length === 0 ? (
-              <div className="task-empty-state h-full my-auto">
-                <div className="task-page-icon mb-2">
-                  <Bookmark className="h-6 w-6 text-[#8b5cf6]" />
+              <div className="flex flex-col items-center justify-center h-full my-auto p-8 text-center space-y-4">
+                <div className="p-3 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
+                  <Bookmark className="h-8 w-8 text-[#8b5cf6]" />
                 </div>
-                <h3 className="task-empty-title">No Resources Found</h3>
-                <p className="task-empty-desc">
+                <h3 className="text-base font-bold text-[var(--text)]">No Resources Found</h3>
+                <p className="text-xs text-[var(--text-muted)] max-w-sm font-sans leading-relaxed">
                   Save external links, GitHub repos, articles, or videos to build your personal knowledge vault.
                 </p>
+                <button
+                  onClick={() => openDrawer()}
+                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-[var(--primary)]/25 hover:opacity-90 transition-all cursor-pointer"
+                >
+                  <Plus className="h-4 w-4" /> Add Resource
+                </button>
               </div>
             ) : (
               <>

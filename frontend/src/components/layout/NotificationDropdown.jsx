@@ -162,11 +162,11 @@ export default function NotificationDropdown() {
             {/* Footer View All Link */}
             <div className="border-t border-[var(--border)] pt-2 text-center">
               <Link
-                href="/notifications"
+                href="/activity"
                 onClick={() => setIsOpen(false)}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--primary)] hover:underline"
               >
-                View Notifications Center <ArrowRight className="h-3.5 w-3.5" />
+                View Activity & Alerts Stream <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
           </motion.div>

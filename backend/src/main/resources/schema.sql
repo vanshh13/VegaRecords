@@ -104,8 +104,12 @@ CREATE TABLE IF NOT EXISTS tracker_type_fields (
     field_type VARCHAR(50) NOT NULL,
     is_required BOOLEAN DEFAULT FALSE,
     display_order INT DEFAULT 0,
+    options TEXT,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE tracker_type_fields ADD COLUMN IF NOT EXISTS options TEXT;
+
 
 -- Table: trackers
 CREATE TABLE IF NOT EXISTS trackers (
@@ -115,9 +119,22 @@ CREATE TABLE IF NOT EXISTS trackers (
     title VARCHAR(255) NOT NULL,
     notes TEXT,
     status VARCHAR(50) DEFAULT 'ACTIVE',
+    cover_url TEXT,
+    current_count INT DEFAULT 0,
+    target_count INT DEFAULT 100,
+    unit_label VARCHAR(50),
+    rating DOUBLE PRECISION,
+    is_ongoing BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE trackers ADD COLUMN IF NOT EXISTS cover_url TEXT;
+ALTER TABLE trackers ADD COLUMN IF NOT EXISTS current_count INT DEFAULT 0;
+ALTER TABLE trackers ADD COLUMN IF NOT EXISTS target_count INT DEFAULT 100;
+ALTER TABLE trackers ADD COLUMN IF NOT EXISTS unit_label VARCHAR(50);
+ALTER TABLE trackers ADD COLUMN IF NOT EXISTS rating DOUBLE PRECISION;
+ALTER TABLE trackers ADD COLUMN IF NOT EXISTS is_ongoing BOOLEAN DEFAULT FALSE;
 
 CREATE INDEX IF NOT EXISTS idx_tracker_user ON trackers(user_id);
 CREATE INDEX IF NOT EXISTS idx_tracker_type ON trackers(tracker_type_id);
@@ -137,10 +154,13 @@ CREATE INDEX IF NOT EXISTS idx_tracker_categories_category ON tracker_categories
 CREATE TABLE IF NOT EXISTS tracker_values (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tracker_id UUID NOT NULL REFERENCES trackers(id) ON DELETE CASCADE,
-    tracker_field_id UUID NOT NULL REFERENCES tracker_type_fields(id) ON DELETE CASCADE,
+    tracker_field_id UUID REFERENCES tracker_type_fields(id) ON DELETE CASCADE,
     value_json JSONB,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE tracker_values ALTER COLUMN tracker_field_id DROP NOT NULL;
+ALTER TABLE tracker_values ALTER COLUMN value_json TYPE TEXT USING value_json::text;
 
 -- Table: resources
 CREATE TABLE IF NOT EXISTS resources (
@@ -212,3 +232,20 @@ CREATE TABLE IF NOT EXISTS searchable_content (
     content TEXT,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Table: knowledge_links
+CREATE TABLE IF NOT EXISTS knowledge_links (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    source_type VARCHAR(50) NOT NULL,
+    source_id UUID NOT NULL,
+    target_type VARCHAR(50) NOT NULL,
+    target_id UUID NOT NULL,
+    relation_type VARCHAR(50) NOT NULL DEFAULT 'RELATED_TO',
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_links_user ON knowledge_links(user_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_links_source ON knowledge_links(source_type, source_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_links_target ON knowledge_links(target_type, target_id);
+

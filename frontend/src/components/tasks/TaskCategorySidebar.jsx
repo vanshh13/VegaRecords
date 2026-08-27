@@ -88,7 +88,7 @@ export default function TaskCategorySidebar() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
             onClick={closeCategorySidebar}
-            className="fixed inset-0 z-50 bg-black/50"
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
           />
 
           {/* Panel */}
@@ -98,7 +98,7 @@ export default function TaskCategorySidebar() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 26, stiffness: 240 }}
-            className="cat-sidebar"
+            className="cat-sidebar z-[101]"
           >
             {/* Header */}
             <div className="cat-sidebar-header">

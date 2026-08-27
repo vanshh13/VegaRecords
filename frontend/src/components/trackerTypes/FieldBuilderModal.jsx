@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTrackerTypeStore } from "@/stores/trackerType.store";
 import {
   X,
@@ -37,6 +37,17 @@ export default function FieldBuilderModal() {
   const [isRequired, setIsRequired] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Handle ESC key to close
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && fieldBuilderOpen) {
+        closeFieldBuilder();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [fieldBuilderOpen, closeFieldBuilder]);
+
   if (!fieldBuilderOpen || !activeFieldType) return null;
 
   const handleAddField = async (e) => {
@@ -60,8 +71,14 @@ export default function FieldBuilderModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm font-mono animate-fadeIn">
-      <div className="relative w-full max-w-2xl rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-2xl space-y-6">
+    <div
+      onClick={closeFieldBuilder}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm font-mono animate-fadeIn cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-2xl rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-2xl space-y-6 cursor-default"
+      >
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
           <div className="flex items-center gap-3">

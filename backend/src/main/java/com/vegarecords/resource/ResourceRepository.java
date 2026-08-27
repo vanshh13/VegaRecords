@@ -16,6 +16,8 @@ import java.util.UUID;
 public interface ResourceRepository extends JpaRepository<Resource, UUID> {
 
     Optional<Resource> findByIdAndUser(UUID id, User user);
+    List<Resource> findByUser(User user);
+
 
     @Query("SELECT DISTINCT r FROM Resource r LEFT JOIN r.categories c WHERE r.user = :user " +
            "AND (:type IS NULL OR r.resourceType = :type) " +

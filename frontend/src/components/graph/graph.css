@@ -1,0 +1,592 @@
+/* ====================================
+   Knowledge Graph — Custom Styles
+   ==================================== */
+
+/* Import React Flow base styles */
+@import "@xyflow/react/dist/style.css";
+
+/* Override React Flow container */
+.knowledge-graph-container .react-flow {
+  background: transparent !important;
+}
+
+.knowledge-graph-container .react-flow__renderer {
+  background: transparent !important;
+}
+
+/* Custom Minimap styling */
+.knowledge-graph-container .react-flow__minimap {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+.knowledge-graph-container .react-flow__minimap-mask {
+  fill: var(--primary) !important;
+  fill-opacity: 0.15 !important;
+}
+
+/* Custom Controls styling */
+.knowledge-graph-container .react-flow__controls {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.knowledge-graph-container .react-flow__controls-button {
+  background: transparent !important;
+  border-bottom: 1px solid var(--border) !important;
+  color: var(--text-muted) !important;
+  width: 36px !important;
+  height: 36px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.knowledge-graph-container .react-flow__controls-button:hover {
+  background: var(--hover-bg) !important;
+  color: var(--primary) !important;
+}
+
+.knowledge-graph-container .react-flow__controls-button:last-child {
+  border-bottom: none !important;
+}
+
+.knowledge-graph-container .react-flow__controls-button svg {
+  fill: currentColor !important;
+}
+
+/* Custom Edge Labels */
+.knowledge-graph-container .react-flow__edge-text {
+  font-size: 9px !important;
+  font-family: "JetBrains Mono", monospace !important;
+  fill: var(--text-muted) !important;
+}
+
+.knowledge-graph-container .react-flow__edge-textbg {
+  fill: var(--surface) !important;
+  fill-opacity: 0.85 !important;
+  rx: 4;
+  ry: 4;
+}
+
+/* Edge path styling */
+.knowledge-graph-container .react-flow__edge-path {
+  stroke: var(--border) !important;
+  stroke-width: 1.5 !important;
+}
+
+.knowledge-graph-container .react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--primary) !important;
+  stroke-width: 2.5 !important;
+}
+
+/* Attribution hide */
+.knowledge-graph-container .react-flow__attribution {
+  display: none !important;
+}
+
+/* ====================================
+   Entity Node Styles
+   ==================================== */
+
+.entity-node {
+  min-width: 160px;
+  max-width: 220px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.entity-node:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.2), 0 8px 32px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.entity-node.selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.3), 0 8px 40px rgba(0, 0, 0, 0.4);
+}
+
+.entity-node__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.entity-node__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.entity-node__label {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: "Inter", sans-serif;
+  color: var(--text);
+  line-height: 1.3;
+  word-break: break-word;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.entity-node__badge {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 8px;
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 12px 8px;
+}
+
+/* Entity type color themes */
+.entity-node--TASK .entity-node__icon {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+.entity-node--TASK .entity-node__badge {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.entity-node--NOTE .entity-node__icon {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+.entity-node--NOTE .entity-node__badge {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.entity-node--RESOURCE .entity-node__icon {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+.entity-node--RESOURCE .entity-node__badge {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.entity-node--TRACKER .entity-node__icon {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+}
+.entity-node--TRACKER .entity-node__badge {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+}
+
+.entity-node--CATEGORY .entity-node__icon {
+  background: rgba(236, 72, 153, 0.15);
+  color: #ec4899;
+}
+.entity-node--CATEGORY .entity-node__badge {
+  background: rgba(236, 72, 153, 0.15);
+  color: #ec4899;
+}
+
+/* ====================================
+   Graph Toolbar Styles
+   ==================================== */
+
+.graph-toolbar {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  pointer-events: none;
+}
+
+.graph-toolbar > * {
+  pointer-events: auto;
+}
+
+.graph-toolbar__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 14px;
+  min-width: 240px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.graph-toolbar__search input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 12px;
+  font-family: "Inter", sans-serif;
+  width: 100%;
+}
+
+.graph-toolbar__search input::placeholder {
+  color: var(--text-muted);
+}
+
+.graph-toolbar__filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 6px 10px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.graph-toolbar__filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.graph-toolbar__filter-btn:hover {
+  background: var(--hover-bg);
+  color: var(--text);
+}
+
+.graph-toolbar__filter-btn.active {
+  border-color: currentColor;
+}
+
+.graph-toolbar__filter-btn.active[data-type="TASK"] {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+.graph-toolbar__filter-btn.active[data-type="NOTE"] {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+.graph-toolbar__filter-btn.active[data-type="RESOURCE"] {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+.graph-toolbar__filter-btn.active[data-type="TRACKER"] {
+  background: rgba(168, 85, 247, 0.1);
+  color: #a855f7;
+  border-color: rgba(168, 85, 247, 0.3);
+}
+.graph-toolbar__filter-btn.active[data-type="CATEGORY"] {
+  background: rgba(236, 72, 153, 0.1);
+  color: #ec4899;
+  border-color: rgba(236, 72, 153, 0.3);
+}
+
+.graph-toolbar__actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 6px 10px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.graph-toolbar__action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: var(--primary);
+  color: white;
+}
+
+.graph-toolbar__action-btn:hover {
+  filter: brightness(1.15);
+}
+
+/* ====================================
+   Graph Background Grid
+   ==================================== */
+
+.graph-bg-pattern {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.03;
+  background-image: radial-gradient(circle, var(--text-muted) 1px, transparent 1px);
+  background-size: 30px 30px;
+  pointer-events: none;
+}
+
+/* ====================================
+   Stats Overlay
+   ==================================== */
+
+.graph-stats {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 10;
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.graph-stats__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--text-muted);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.graph-stats__number {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* ====================================
+   Link Creator Modal
+   ==================================== */
+
+.link-creator-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+}
+
+.link-creator-modal {
+  width: 100%;
+  max-width: 480px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.link-creator-modal h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 20px;
+  font-family: "Inter", sans-serif;
+}
+
+.link-creator-modal label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.link-creator-modal select,
+.link-creator-modal input[type="text"] {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 12px;
+  font-family: "Inter", sans-serif;
+  outline: none;
+  margin-bottom: 16px;
+  transition: border-color 0.15s;
+}
+
+.link-creator-modal select:focus,
+.link-creator-modal input[type="text"]:focus {
+  border-color: var(--primary);
+}
+
+.link-creator-modal option {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.link-creator-modal__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.link-creator-modal__btn {
+  padding: 8px 20px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: "JetBrains Mono", monospace;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.link-creator-modal__btn--cancel {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.link-creator-modal__btn--cancel:hover {
+  background: var(--hover-bg);
+  color: var(--text);
+}
+
+.link-creator-modal__btn--create {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.link-creator-modal__btn--create:hover {
+  filter: brightness(1.1);
+}
+
+.link-creator-modal__btn--create:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ====================================
+   Empty State
+   ==================================== */
+
+.graph-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 100%;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 40px;
+}
+
+.graph-empty-state__icon {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  background: var(--hover-bg);
+  border: 1px dashed var(--border);
+}
+
+.graph-empty-state__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  font-family: "Inter", sans-serif;
+}
+
+.graph-empty-state__subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  max-width: 360px;
+  line-height: 1.6;
+}
+
+/* ====================================
+   Responsive Adjustments
+   ==================================== */
+
+@media (max-width: 640px) {
+  .graph-toolbar {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    gap: 6px;
+  }
+
+  .graph-toolbar__search {
+    min-width: 160px;
+    flex: 1;
+  }
+
+  .graph-toolbar__filters {
+    flex: 1;
+    order: 3;
+  }
+
+  .graph-toolbar__actions {
+    margin-left: 0;
+  }
+
+  .graph-stats {
+    bottom: 8px;
+    left: 8px;
+  }
+
+  .entity-node {
+    min-width: 130px;
+    max-width: 170px;
+  }
+}

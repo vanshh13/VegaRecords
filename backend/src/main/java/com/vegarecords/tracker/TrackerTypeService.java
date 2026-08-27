@@ -40,6 +40,7 @@ public class TrackerTypeService {
                             .fieldType(f.getFieldType())
                             .isRequired(f.getIsRequired() != null ? f.getIsRequired() : false)
                             .displayOrder(f.getDisplayOrder() != null ? f.getDisplayOrder() : 0)
+                            .options(f.getOptions())
                             .build())
                     .collect(Collectors.toList());
             trackerType.setFields(fields);
@@ -63,7 +64,9 @@ public class TrackerTypeService {
                 .fieldType(request.getFieldType())
                 .isRequired(request.getIsRequired() != null ? request.getIsRequired() : false)
                 .displayOrder(request.getDisplayOrder() != null ? request.getDisplayOrder() : 0)
+                .options(request.getOptions())
                 .build();
+
 
         trackerTypeFieldRepository.save(field);
         return toTrackerTypeResponse(trackerType);
@@ -149,9 +152,11 @@ public class TrackerTypeService {
                         .fieldType(f.getFieldType())
                         .isRequired(f.getIsRequired())
                         .displayOrder(f.getDisplayOrder())
+                        .options(f.getOptions())
                         .build())
                 .collect(Collectors.toList())
                 : new ArrayList<>();
+
 
         return TrackerTypeResponse.builder()
                 .id(trackerType.getId())

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import MainLayout from "@/components/layout/MainLayout";
 import { trackerApi } from "@/apis/tracker.api";
+import { useTrackerStore } from "@/stores/tracker.store";
 import TrackerDetailsView from "@/components/trackers/TrackerDetailsView";
 import TrackerDrawer from "@/components/trackers/TrackerDrawer";
 import { ArrowLeft } from "lucide-react";
@@ -12,6 +13,7 @@ export default function TrackerDetailPage() {
   const { id } = useParams();
   const router = useRouter();
 
+  const { activeTrackerDetail, fetchTrackerById } = useTrackerStore();
   const [tracker, setTracker] = useState(null);
   const [values, setValues] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +22,7 @@ export default function TrackerDetailPage() {
   useEffect(() => {
     if (id) {
       setLoading(true);
-      Promise.all([trackerApi.getById(id), trackerApi.getValues(id)])
+      Promise.all([fetchTrackerById(id), trackerApi.getValues(id)])
         .then(([tData, vData]) => {
           setTracker(tData);
           setValues(vData || []);
@@ -28,9 +30,11 @@ export default function TrackerDetailPage() {
         .catch(() => setError("Tracker not found"))
         .finally(() => setLoading(false));
     }
-  }, [id]);
+  }, [id, fetchTrackerById]);
 
-  if (loading) {
+  const activeTracker = (activeTrackerDetail && activeTrackerDetail.id === id) ? activeTrackerDetail : tracker;
+
+  if (loading && !activeTracker) {
     return (
       <MainLayout>
         <div className="flex items-center justify-center min-h-[60vh] font-mono text-xs text-[var(--text-muted)]">
@@ -40,7 +44,7 @@ export default function TrackerDetailPage() {
     );
   }
 
-  if (error || !tracker) {
+  if (error || !activeTracker) {
     return (
       <MainLayout>
         <div className="p-6 font-mono space-y-4">
@@ -59,7 +63,7 @@ export default function TrackerDetailPage() {
   return (
     <MainLayout>
       <div>
-        <TrackerDetailsView tracker={tracker} values={values} />
+        <TrackerDetailsView tracker={activeTracker} values={values} />
         <TrackerDrawer />
       </div>
     </MainLayout>

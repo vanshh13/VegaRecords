@@ -18,4 +18,6 @@ public class TrackerTypeFieldResponse {
     private String fieldType;
     private Boolean isRequired;
     private Integer displayOrder;
+    private String options;
 }
+

@@ -16,7 +16,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class TrackerRequest {
 
-    @NotNull(message = "Tracker type ID is required")
     private UUID trackerTypeId;
 
     @NotBlank(message = "Title is required")
@@ -24,5 +23,13 @@ public class TrackerRequest {
 
     private String notes;
     private String status;
+    private String coverUrl;
+    private Integer currentCount;
+    private Integer targetCount;
+    private String unitLabel;
+    private Double rating;
+    private Boolean isOngoing;
+    private Boolean isFavorite;
+    private UUID categoryId;
     private List<UUID> categoryIds;
 }

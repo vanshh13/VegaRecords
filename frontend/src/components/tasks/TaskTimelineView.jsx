@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTaskStore } from "@/stores/task.store";
+import { formatDueDate } from "@/utils/dateUtils";
 import Link from "next/link";
 
 const GROUPS = [
@@ -128,7 +129,7 @@ function TimelineRow({ task, isLast }) {
         <div className="timeline-card-footer">
           <span className="timeline-due">
             {task.dueDate
-              ? `Due ${task.dueDate}`
+              ? `Due ${formatDueDate(task.dueDate)}`
               : task.status === "COMPLETED"
               ? "Completed"
               : "No date"}
