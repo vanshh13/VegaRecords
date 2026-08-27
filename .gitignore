@@ -1,21 +1,29 @@
-# Root Environment Variables
+# Environment Variables & Secrets
 .env
-.env*.local
+.env*
 *.env
+.env.local
+.env.*.local
+*.pem
+*.key
 
-# Planning and Specification Docs
-plans-mds/
-*.mds
+# Build Outputs & Dependencies (Recursive)
+**/node_modules/
+**/.next/
+**/target/
+**/dist/
+**/out/
+**/build/
+frontend/frontend/
 
 # IDE / OS files
 .idea/
 .vscode/
 .DS_Store
 *.log
+*.tmp
+*.swp
 
-# Subfolder builds
-backend/target/
-frontend/.next/
-frontend/node_modules/
-frontend/out/
-frontend/build/
+# Planning and Specification Docs
+plans-mds/
+*.mds
